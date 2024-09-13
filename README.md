@@ -47,8 +47,8 @@ Use the built-in continuous integration in GitLab.
 
 ## Links
 
-- [ ] [Team Contract on WIKI](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Team-Contract)
-- [ ] [Milestones](https://git.uwaterloo.ca/smohamed/team102-18/-/milestones) 
+- [Team Contract on WIKI](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Team-Contract)
+- [Milestones](https://git.uwaterloo.ca/smohamed/team102-18/-/milestones) 
 
 
 
