@@ -8,7 +8,7 @@
 - Ragavan Ravendran
 - Shaheed Mohomad Ali
 
-## Links
+## Project Related Links
 
 - [Team Contract on WIKI](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Team-Contract)
 - [Milestones](https://git.uwaterloo.ca/smohamed/team102-18/-/milestones) 
