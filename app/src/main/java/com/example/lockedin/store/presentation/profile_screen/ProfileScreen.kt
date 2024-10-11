@@ -1,5 +1,6 @@
 package com.example.lockedin
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -10,11 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.LightGray
@@ -22,11 +24,9 @@ import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 
-val PrimaryColor = Color(0xFF6200EE) // Purple
-val SecondaryColor = Color(0xFF03DAC5) // Teal
-val BackgroundColor = Color(0xFFF5F5F5) // Light grey background
-val BoxColor = Color(0xFFE0E0E0) // Light grey for stats box
-val TextColor = Color(0xFF333333) // Dark text color for contrast
+// Define the colors used in the UI
+val Purple500 = Color(0xFF6200EE)
+val BackgroundColor = Color(0xFFF5F5F5)
 
 @Composable
 fun ProfileScreen() {
@@ -34,53 +34,54 @@ fun ProfileScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundColor)
-            .padding(top = 16.dp),
+            .padding(top = 40.dp), // Added more padding to move content downwards
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Profile Picture and Name Section
-        ProfileHeader(name = "Bart Simpson")
-        Spacer(modifier = Modifier.height(16.dp))
+        // Profile Header with Image
+        ProfileHeader(
+            name = "Bart Simpson",
+            image = painterResource(id = R.drawable.temppfp) // Replace with your image resource
+        )
+        Spacer(modifier = Modifier.height(24.dp)) // Added more space after profile image
 
         // Edit Profile Button
         EditProfileButton()
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp)) // Increased spacing for better alignment
 
         // Bio Section
         UserBio(
             bio = "Here to accomplish my fitness goals.\nIf anyone goes to GoodLife, send me a message!"
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp)) // Increased spacing to match design
 
-        // Communities and Points Section within a rounded box
+        // Communities and Points Section with a larger rounded box
         StatsSection(communities = 4, points = 219)
     }
 }
 
 @Composable
-fun ProfileHeader(name: String) {
+fun ProfileHeader(name: String, image: Painter) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Circular profile picture placeholder
-        Box(
+        // Circular profile picture
+        Image(
+            painter = image,
+            contentDescription = "Profile Image",
             modifier = Modifier
-                .size(80.dp)
+                .size(120.dp) // Increased size to make the profile image larger
                 .clip(CircleShape)
-                .border(2.dp, Color.Gray, CircleShape)
-                .background(LightGray),
-            contentAlignment = Alignment.Center
-        ) {
-            // Replace with actual image if available
-            Text(text = "Image", color = White)
-        }
+                .border(2.dp, Color.Gray, CircleShape),
+            contentScale = ContentScale.Crop
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp)) // Increased space between image and name
 
         // Name (split across two lines)
-        Text(text = "Bart", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextColor)
-        Text(text = "Simpson", fontSize = 24.sp, fontWeight = FontWeight.Light, color = TextColor)
+        Text(text = "Bart", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+        Text(text = "Simpson", fontSize = 20.sp, fontWeight = FontWeight.Normal, color = Color.Black)
     }
 }
 
@@ -88,13 +89,13 @@ fun ProfileHeader(name: String) {
 fun EditProfileButton() {
     Button(
         onClick = { /* Handle edit profile click */ },
-//        colors = ButtonDefaults.buttonColors(backgroundColor = BoxColor),
+        colors = ButtonDefaults.buttonColors(LightGray),
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .height(40.dp)
-            .width(150.dp)
+            .width(180.dp)
     ) {
-        Text(text = "Edit Profile", color = TextColor)
+        Text(text = "Edit Profile", color = Color.Black, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -103,9 +104,9 @@ fun UserBio(bio: String) {
     Text(
         text = bio,
         fontSize = 16.sp,
-        color = TextColor,
+        color = Color.Black,
         textAlign = TextAlign.Center,
-        modifier = Modifier.padding(horizontal = 16.dp)
+        modifier = Modifier.padding(horizontal = 32.dp)
     )
 }
 
@@ -114,9 +115,9 @@ fun StatsSection(communities: Int, points: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .background(BoxColor, shape = RoundedCornerShape(16.dp))
-            .padding(16.dp),
+            .padding(horizontal = 32.dp)
+            .background(Color(0xFFF1F1F1), shape = RoundedCornerShape(24.dp)) // Made box larger and more rounded
+            .padding(24.dp), // Increased padding for a bigger box
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -124,8 +125,8 @@ fun StatsSection(communities: Int, points: Int) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Communities", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextColor)
-            Text(text = "$communities", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextColor)
+            Text(text = "Communities", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = Color.Black)
+            Text(text = "$communities", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
         }
 
         // Divider between Communities and Points
@@ -140,8 +141,8 @@ fun StatsSection(communities: Int, points: Int) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Total Points", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextColor)
-            Text(text = "$points", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextColor)
+            Text(text = "Total Points", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = Color.Black)
+            Text(text = "$points", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
         }
     }
 }
