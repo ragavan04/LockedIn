@@ -43,7 +43,7 @@ fun MyApp() {
         ) {
             composable("progress_screen") { ProgressScreen() }
             composable("feed_screen") { ProgressScreen() } // Placeholder
-            composable("profile_screen") { ProgressScreen() } // Placeholder
+            composable("profile_screen") { ProfileScreen() } // Placeholder
         }
     }
 }
