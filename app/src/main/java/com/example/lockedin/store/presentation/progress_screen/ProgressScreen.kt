@@ -33,7 +33,7 @@ fun ProgressScreen() {
     ) {
         // Title
         Text(
-            text = "PROGRESS",
+            text = "Progess",
             fontSize = 24.sp,
             color = Color.Black,
             modifier = Modifier

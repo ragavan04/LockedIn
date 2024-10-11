@@ -19,6 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.lockedin.store.presentation.community_feed.CommunityFeed
 import com.example.lockedin.store.presentation.progress_screen.ProgressScreen // example
 
 class MainActivity : ComponentActivity() {
@@ -42,7 +43,7 @@ fun MyApp() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("progress_screen") { ProgressScreen() }
-            composable("feed_screen") { ProgressScreen() } // Placeholder
+            composable("feed_screen") { CommunityFeed() } // Placeholder
             composable("profile_screen") { ProgressScreen() } // Placeholder
         }
     }
