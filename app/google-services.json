@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "145467039327",
+    "project_id": "lockedin-3df47",
+    "storage_bucket": "lockedin-3df47.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:145467039327:android:4d66b64a0972572f24c5ea",
+        "android_client_info": {
+          "package_name": "com.example.lockedin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABDoXaJd3aWy13ZYFZEoL8CjSk4UDL9Tc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

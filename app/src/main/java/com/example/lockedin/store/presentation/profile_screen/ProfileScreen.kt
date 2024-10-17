@@ -23,41 +23,50 @@ import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import com.example.lockedin.models.AuthViewModel
 
 // Define the colors used in the UI
 val Purple500 = Color(0xFF6200EE)
 val BackgroundColor = Color(0xFFF5F5F5)
 
 @Composable
-fun ProfileScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BackgroundColor)
-            .padding(top = 40.dp), // Added more padding to move content downwards
-        horizontalAlignment = Alignment.CenterHorizontally
+fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, navController: NavController, authViewModel: AuthViewModel) {
+    Scaffold(
+
+        bottomBar = { BottomNavigationBar(navController) }
     ) {
-        // Profile Header with Image
-        ProfileHeader(
-            name = "Bart Simpson",
-            image = painterResource(id = R.drawable.temppfp) // Replace with your image resource
-        )
-        Spacer(modifier = Modifier.height(24.dp)) // Added more space after profile image
 
-        // Edit Profile Button
-        EditProfileButton()
 
-        Spacer(modifier = Modifier.height(24.dp)) // Increased spacing for better alignment
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BackgroundColor)
+                .padding(top = 40.dp), // Added more padding to move content downwards
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Profile Header with Image
+            ProfileHeader(
+                name = "Bart Simpson",
+                image = painterResource(id = R.drawable.temppfp) // Replace with your image resource
+            )
+            Spacer(modifier = Modifier.height(24.dp)) // Added more space after profile image
 
-        // Bio Section
-        UserBio(
-            bio = "Here to accomplish my fitness goals.\nIf anyone goes to GoodLife, send me a message!"
-        )
+            // Edit Profile Button
+            EditProfileButton()
 
-        Spacer(modifier = Modifier.height(32.dp)) // Increased spacing to match design
+            Spacer(modifier = Modifier.height(24.dp)) // Increased spacing for better alignment
 
-        // Communities and Points Section with a larger rounded box
-        StatsSection(communities = 4, points = 219)
+            // Bio Section
+            UserBio(
+                bio = "Here to accomplish my fitness goals.\nIf anyone goes to GoodLife, send me a message!"
+            )
+
+            Spacer(modifier = Modifier.height(32.dp)) // Increased spacing to match design
+
+            // Communities and Points Section with a larger rounded box
+            StatsSection(communities = 4, points = 219)
+        }
     }
 }
 
@@ -147,8 +156,8 @@ fun StatsSection(communities: Int, points: Int) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ProfileScreenPreview() {
-    ProfileScreen()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun ProfileScreenPreview() {
+//    ProfileScreen()
+//}

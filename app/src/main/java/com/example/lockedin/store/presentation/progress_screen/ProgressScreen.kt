@@ -21,50 +21,59 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material.Scaffold
 import androidx.compose.ui.draw.clip
+import androidx.navigation.NavController
+import com.example.lockedin.BottomNavigationBar
 import com.example.lockedin.R
+import com.example.lockedin.models.AuthViewModel
 
 @Composable
-fun ProgressScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+fun ProgressScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, navController: NavController, authViewModel: AuthViewModel) {
+    Scaffold(
+        bottomBar = { BottomNavigationBar(navController) },
     ) {
-        // Title
-        Text(
-            text = "Progess",
-            fontSize = 24.sp,
-            color = Color.Black,
+
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            textAlign = TextAlign.Center
-        )
-
-        // Divider
-        Divider(
-            color = Color.Black,
-            thickness = 2.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        )
-
-        // Progress pictures in grid
-        val progressItems = listOf(
-            ProgressItem("04/15/2024", R.drawable.sampledumbbell),
-            ProgressItem("04/13/2024", R.drawable.sampledumbbell2),
-            ProgressItem("04/12/2024", R.drawable.sampledumbbell3),
-            ProgressItem("04/11/2024", R.drawable.sampledumbbell4),
-        )
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize()
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            items(progressItems.size) { index ->
-                ProgressItemView(progressItems[index])
+            // Title
+            Text(
+                text = "Progess",
+                fontSize = 24.sp,
+                color = Color.Black,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                textAlign = TextAlign.Center
+            )
+
+            // Divider
+            Divider(
+                color = Color.Black,
+                thickness = 2.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            )
+
+            // Progress pictures in grid
+            val progressItems = listOf(
+                ProgressItem("04/15/2024", R.drawable.sampledumbbell),
+                ProgressItem("04/13/2024", R.drawable.sampledumbbell2),
+                ProgressItem("04/12/2024", R.drawable.sampledumbbell3),
+                ProgressItem("04/11/2024", R.drawable.sampledumbbell4),
+            )
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(progressItems.size) { index ->
+                    ProgressItemView(progressItems[index])
+                }
             }
         }
     }
@@ -101,8 +110,8 @@ fun ProgressItemView(item: ProgressItem) {
 
 data class ProgressItem(val date: String, val imageRes: Int)
 
-@Preview
-@Composable
-fun PreviewProgressScreen() {
-    ProgressScreen()
-}
+//@Preview
+//@Composable
+//fun PreviewProgressScreen() {
+//    ProgressScreen()
+//}

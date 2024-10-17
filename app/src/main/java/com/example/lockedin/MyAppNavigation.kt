@@ -1,0 +1,41 @@
+package com.example.lockedin
+
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.lockedin.models.AuthViewModel
+import com.example.lockedin.store.presentation.community_feed.CommunityFeed
+import com.example.lockedin.store.presentation.login_screen.LoginScreen
+import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
+import com.example.lockedin.store.presentation.signup_screen.SignupScreen
+
+
+@Composable
+fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
+    val navController = rememberNavController()
+    Scaffold(
+    ) {
+        NavHost(navController, startDestination = "login", builder = {
+            composable("login") {
+                LoginScreen(modifier, navController, authViewModel)
+            }
+            composable("signup") {
+                SignupScreen(modifier, navController, authViewModel)
+            }
+            composable("community_screen") {
+                CommunityFeed(modifier, navController, authViewModel)
+            }
+            composable("progress_screen"){
+                ProgressScreen(modifier, navController, authViewModel)
+            }
+            composable("profile_screen"){
+                ProfileScreen(modifier, navController, authViewModel)
+            }
+        })
+    }
+
+}
