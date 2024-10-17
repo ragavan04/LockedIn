@@ -1,9 +1,14 @@
 package com.example.lockedin.models
 
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+import com.google.firebase.auth.userProfileChangeRequest
 
 
 class AuthViewModel : ViewModel(){
@@ -36,7 +41,10 @@ class AuthViewModel : ViewModel(){
             }
     }
 
-    fun signup(email: String, password: String){
+    fun signup(email: String, password: String, username: String, profilePicUrl: String){
+        Log.d("username", username)
+        Log.d("profilepic", profilePicUrl)
+
         if (email.isEmpty() || password.isEmpty()){
             _authState.value = AuthState.Error("Email or password can't be empty")
         }
@@ -45,10 +53,27 @@ class AuthViewModel : ViewModel(){
             .addOnCompleteListener{ task ->
                 if (task.isSuccessful){
                     _authState.value = AuthState.Authenticated
+
+                    val profileUpdates = userProfileChangeRequest {
+                        displayName = username
+                        photoUri = Uri.parse(profilePicUrl)
+                    }
+
+                    auth.currentUser!!.updateProfile(profileUpdates)
+                        .addOnCompleteListener{ task ->
+                            if (task.isSuccessful) {
+                                Log.d("USER PROFILE", "User profile updated.")
+                            }
+                    }
+
                 } else {
                     _authState.value = AuthState.Error(task.exception?.message?: "Something went wrong")
                 }
             }
+
+
+
+
     }
 
     fun signout(){

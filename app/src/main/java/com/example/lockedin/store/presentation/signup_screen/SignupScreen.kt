@@ -25,13 +25,15 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var profilePicUrl by remember { mutableStateOf("") }
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
 
     LaunchedEffect(authState.value) {
         when(authState.value){
-            is AuthState.Authenticated -> navController.navigate("community_feed")
+            is AuthState.Authenticated -> navController.navigate("community_screen")
             is AuthState.Error -> Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
             else -> Unit
         }
@@ -58,10 +60,29 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
             label = { Text("Password") }
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = username,
+            onValueChange = {username = it},
+            label = { Text("Username") }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = profilePicUrl,
+            onValueChange = {profilePicUrl = it},
+            label = { Text("Profile Picture URL") }
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            authViewModel.signup(email, password)
+            authViewModel.signup(email, password, username, profilePicUrl)
+//            if (authState.value is AuthState.Authenticated) {
+//                navController.navigate("community_feed")
+//            }
         }){
             Text("Register")
         }
