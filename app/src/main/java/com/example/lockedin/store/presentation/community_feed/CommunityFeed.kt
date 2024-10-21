@@ -29,125 +29,144 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.lockedin.MyApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.navigation.NavController
+import com.example.lockedin.BottomNavigationBar
 import com.example.lockedin.R
+import com.example.lockedin.models.AuthState
+import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.store.presentation.progress_screen.ProgressItem
 import com.example.lockedin.store.presentation.progress_screen.ProgressItemView
 import com.example.lockedin.store.presentation.util.components.LoadingDialog
+import org.checkerframework.common.subtyping.qual.Bottom
 import java.lang.reflect.Modifier
 
 
 @Composable
-fun CommunityFeed() {
+fun CommunityFeed(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, navController: NavController, authViewModel: AuthViewModel) {
+    val authState = authViewModel.authState.observeAsState()
 
-    Row(
-        modifier = androidx.compose.ui.Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-
-        Text(
-            text = "<",
-            fontSize = 42.sp,
-            color = Color.Black,
-            modifier = androidx.compose.ui.Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            textAlign = TextAlign.Left
-        )
-
-
+    LaunchedEffect(authState.value) {
+        when(authState.value){
+            is AuthState.Unauthenticated -> navController.navigate("login")
+            else -> Unit
+        }
     }
 
-    //Spacer(modifier = androidx.compose.ui.Modifier.height(40.dp))
-
-    Column(
-        modifier = androidx.compose.ui.Modifier
-            .fillMaxSize()
-            .padding(28.dp)
+    Scaffold(
+        bottomBar = { BottomNavigationBar(navController) }
     ) {
-        // Title
-        Text(
-            text = "\nFind Your",
-
-            fontSize = 42.sp,
-            color = Color.Black,
-            modifier = androidx.compose.ui.Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            textAlign = TextAlign.Left
-        )
-
-        // Title
-        Text(
-            text = "Community",
-            fontSize = 54.sp,
-            color = Color.Black,
-            modifier = androidx.compose.ui.Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            textAlign = TextAlign.Left
-        )
-
-
         Row(
-
             modifier = androidx.compose.ui.Modifier
                 .fillMaxWidth()
-
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
-            Button(
-                onClick = {
-                    // Handle button click action here
-                },
+            Text(
+                text = "<",
+                fontSize = 42.sp,
+                color = Color.Black,
                 modifier = androidx.compose.ui.Modifier
-                    .padding(8.dp),
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                textAlign = TextAlign.Left
+            )
 
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.LightGray.copy(alpha = 0.5f),  // Customize the button background
-                    contentColor = Color.White    // Customize the text color
-                )
-            ) {
-                Text(
-                    text = "Join Community"
-                )  // The button label
-            }
-
-            Button(
-                onClick = {
-                    // Handle button click action here
-                },
-                modifier = androidx.compose.ui.Modifier
-                    .padding(8.dp),
-
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,  // Customize the button background
-                    contentColor = Color.White    // Customize the text color
-                )
-            ) {
-                Text(
-                    text = "Your Communities"
-                )  // The button label
-            }
 
         }
 
+        //Spacer(modifier = androidx.compose.ui.Modifier.height(40.dp))
 
-        Spacer(modifier = androidx.compose.ui.Modifier.height(40.dp))
-
-        val progressItems = listOf(
-            ProgressItem("Swimming", R.drawable.samplecommunity1),
-            ProgressItem("Tennis", R.drawable.samplecommunity2),
-            ProgressItem("Working Out", R.drawable.samplecommunity3)
-        )
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(1),
-            modifier = androidx.compose.ui.Modifier.fillMaxSize()
+        Column(
+            modifier = androidx.compose.ui.Modifier
+                .fillMaxSize()
+                .padding(28.dp)
         ) {
-            items(progressItems.size) { index ->
-                ProgressItemView(progressItems[index])
+            // Title
+            Text(
+                text = "\nFind Your",
+
+                fontSize = 42.sp,
+                color = Color.Black,
+                modifier = androidx.compose.ui.Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                textAlign = TextAlign.Left
+            )
+
+            // Title
+            Text(
+                text = "Community",
+                fontSize = 54.sp,
+                color = Color.Black,
+                modifier = androidx.compose.ui.Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                textAlign = TextAlign.Left
+            )
+
+
+            Row(
+
+                modifier = androidx.compose.ui.Modifier
+                    .fillMaxWidth()
+
+            ) {
+
+                Button(
+                    onClick = {
+                        // Handle button click action here
+                    },
+                    modifier = androidx.compose.ui.Modifier
+                        .padding(8.dp),
+
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.LightGray.copy(alpha = 0.5f),  // Customize the button background
+                        contentColor = Color.White    // Customize the text color
+                    )
+                ) {
+                    Text(
+                        text = "Join Community"
+                    )  // The button label
+                }
+
+                Button(
+                    onClick = {
+                        // Handle button click action here
+                    },
+                    modifier = androidx.compose.ui.Modifier
+                        .padding(8.dp),
+
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,  // Customize the button background
+                        contentColor = Color.White    // Customize the text color
+                    )
+                ) {
+                    Text(
+                        text = "Your Communities"
+                    )  // The button label
+                }
+
+            }
+
+
+            Spacer(modifier = androidx.compose.ui.Modifier.height(40.dp))
+
+            val progressItems = listOf(
+                ProgressItem("Swimming", R.drawable.samplecommunity1),
+                ProgressItem("Tennis", R.drawable.samplecommunity2),
+                ProgressItem("Working Out", R.drawable.samplecommunity3)
+            )
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(1),
+                modifier = androidx.compose.ui.Modifier.fillMaxSize()
+            ) {
+                items(progressItems.size) { index ->
+                    ProgressItemView(progressItems[index])
+                }
             }
         }
     }

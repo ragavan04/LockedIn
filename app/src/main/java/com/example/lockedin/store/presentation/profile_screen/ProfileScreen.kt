@@ -1,6 +1,7 @@
 package com.example.lockedin
 
-import androidx.compose.foundation.Image
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -8,67 +9,104 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.LightGray
-import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import com.example.lockedin.models.AuthState
+import com.example.lockedin.models.AuthViewModel
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 // Define the colors used in the UI
 val Purple500 = Color(0xFF6200EE)
 val BackgroundColor = Color(0xFFF5F5F5)
 
 @Composable
-fun ProfileScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BackgroundColor)
-            .padding(top = 40.dp), // Added more padding to move content downwards
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Profile Header with Image
-        ProfileHeader(
-            name = "Bart Simpson",
-            image = painterResource(id = R.drawable.temppfp) // Replace with your image resource
-        )
-        Spacer(modifier = Modifier.height(24.dp)) // Added more space after profile image
+fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, navController: NavController, authViewModel: AuthViewModel) {
+    val authState = authViewModel.authState.observeAsState()
+    val user = Firebase.auth.currentUser
 
-        // Edit Profile Button
-        EditProfileButton()
 
-        Spacer(modifier = Modifier.height(24.dp)) // Increased spacing for better alignment
 
-        // Bio Section
-        UserBio(
-            bio = "Here to accomplish my fitness goals.\nIf anyone goes to GoodLife, send me a message!"
-        )
+    LaunchedEffect(authState.value) {
+        when(authState.value){
+            is AuthState.Unauthenticated -> navController.navigate("login")
+            else -> Unit
+        }
+    }
+    user?.let {
+        val username = it.displayName
+        val email = it.email
+        val photoUrl = it.photoUrl
+        val uid = it.uid
 
-        Spacer(modifier = Modifier.height(32.dp)) // Increased spacing to match design
+        if (username != null) {
+            Log.d("FROM PROFILE SCREEN", username)
+        }
 
-        // Communities and Points Section with a larger rounded box
-        StatsSection(communities = 4, points = 219)
+
+        Scaffold(
+
+            bottomBar = { BottomNavigationBar(navController) }
+        ) {
+
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(BackgroundColor)
+                    .padding(top = 40.dp), // Added more padding to move content downwards
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+//              Profile Header with Image
+                if (username != null) {
+                    ProfileHeader(
+                        name = username,
+                        image = photoUrl // Replace with your image resource
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.dp)) // Added more space after profile image
+
+                // Edit Profile Button
+                EditProfileButton()
+
+                Spacer(modifier = Modifier.height(24.dp)) // Increased spacing for better alignment
+
+                // Bio Section
+                UserBio(
+                    bio = "Here to accomplish my fitness goals.\nIf anyone goes to GoodLife, send me a message!"
+                )
+
+                Button(onClick = { authViewModel.signout() }) { Text("Sign out") }
+
+                Spacer(modifier = Modifier.height(32.dp)) // Increased spacing to match design
+
+                // Communities and Points Section with a larger rounded box
+                StatsSection(communities = 4, points = 219)
+            }
+        }
     }
 }
 
 @Composable
-fun ProfileHeader(name: String, image: Painter) {
+fun ProfileHeader(name: String, image: Uri?) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Circular profile picture
-        Image(
-            painter = image,
+        AsyncImage(
+            model = image,
             contentDescription = "Profile Image",
             modifier = Modifier
                 .size(120.dp) // Increased size to make the profile image larger
@@ -80,7 +118,7 @@ fun ProfileHeader(name: String, image: Painter) {
         Spacer(modifier = Modifier.height(12.dp)) // Increased space between image and name
 
         // Name (split across two lines)
-        Text(text = "Bart", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+        Text(text = name, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.Black)
         Text(text = "Simpson", fontSize = 20.sp, fontWeight = FontWeight.Normal, color = Color.Black)
     }
 }
@@ -147,8 +185,8 @@ fun StatsSection(communities: Int, points: Int) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ProfileScreenPreview() {
-    ProfileScreen()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun ProfileScreenPreview() {
+//    ProfileScreen()
+//}
