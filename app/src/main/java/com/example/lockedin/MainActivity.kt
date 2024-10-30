@@ -19,10 +19,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.lockedin.models.AuthViewModel
+import com.example.lockedin.models.CommunityViewModel
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val db = Firebase.firestore
+
         setContent {
             MyApp()
         }
@@ -32,8 +38,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp() {
     val authViewModel: AuthViewModel = viewModel()
+    val communityViewModel: CommunityViewModel = viewModel()
     Scaffold (modifier = Modifier.fillMaxSize()) {
-        innerPadding -> MyAppNavigation(authViewModel = authViewModel, modifier = Modifier.padding(innerPadding))
+        innerPadding -> MyAppNavigation(authViewModel = authViewModel, modifier = Modifier.padding(innerPadding), communityViewModel = communityViewModel)
     }
 }
 

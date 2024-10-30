@@ -4,6 +4,7 @@ import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
@@ -19,7 +20,8 @@ fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
         BottomNavItem("Community", "community_screen", Icons.Default.Home),
         BottomNavItem("Progress", "progress_screen", Icons.Default.Star),
-        BottomNavItem("Profile", "profile_screen", Icons.Default.Person)
+        BottomNavItem("Profile", "profile_screen", Icons.Default.Person),
+        BottomNavItem("Test-Community", "CreateCommunityScreen", Icons.Default.Email)
     )
 
     BottomNavigation(
