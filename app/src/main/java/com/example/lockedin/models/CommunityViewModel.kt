@@ -1,6 +1,7 @@
 package com.example.lockedin.models
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
@@ -21,6 +22,12 @@ class CommunityViewModel : ViewModel() {
 
     // List to hold the fetched community data
     val communityList = mutableStateListOf<Community>()
+
+    // List to hold posts for a specific community
+    val postsForCommunity = mutableStateListOf<Post>()
+
+    val currentCommunity = mutableStateOf<Community?>(null)
+
 
     // LOGIC FOR PUSHING DATA TO DB
     fun createCommunity(name: String, description: String, communityPicture: String) {
@@ -99,6 +106,7 @@ class CommunityViewModel : ViewModel() {
                 for (communityDoc in communitySnapshot.documents) {
                     val community = communityDoc.toObject(Community::class.java)
                     if (community != null) {
+                        community.id = communityDoc.id
 
                         println("Community found: ${community.name}")
 
@@ -124,5 +132,43 @@ class CommunityViewModel : ViewModel() {
             }
         }
 
+    }
+
+    // Function to fetch posts for a specific community by ID
+    fun fetchPostsForCommunity(communityId: String) {
+        viewModelScope.launch {
+            try {
+                // Clear previous posts
+                postsForCommunity.clear()
+
+                // Fetch posts for the specific community
+                val postsSnapshot = db.collection("communities")
+                    .document(communityId)
+                    .collection("posts")
+                    .get()
+                    .await()
+
+                // Convert and add posts to the list
+                val posts = postsSnapshot.toObjects(Post::class.java)
+                postsForCommunity.addAll(posts)
+
+                println("Posts fetched for community ID $communityId: ${posts.size}")
+
+            } catch (e: Exception) {
+                println("Error fetching posts for community ID $communityId: ${e.message}")
+            }
+        }
+    }
+
+    fun fetchCommunityById(communityId: String) {
+        viewModelScope.launch {
+            try {
+                val document = db.collection("communities").document(communityId).get().await()
+                val community = document.toObject(Community::class.java)
+                currentCommunity.value = community
+            } catch (e: Exception) {
+                println("Error fetching community: ${e.message}")
+            }
+        }
     }
 }
