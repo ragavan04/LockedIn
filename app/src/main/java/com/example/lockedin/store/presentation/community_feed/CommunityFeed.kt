@@ -44,7 +44,10 @@ import com.example.lockedin.store.presentation.progress_screen.ProgressItemView
 import com.example.lockedin.store.presentation.util.components.LoadingDialog
 import org.checkerframework.common.subtyping.qual.Bottom
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.lockedin.store.presentation.community_posts.CommunityPosts
+
 
 
 @Composable
@@ -75,7 +78,7 @@ fun CommunityFeed(   modifier: Modifier = Modifier,
     LaunchedEffect(communities) {
         CommunityItems.clear()
         for (community in communities) {
-            CommunityItems.add(CommunityItem(community.name, community.communityImage))
+            CommunityItems.add(CommunityItem(community.name, community.communityImage, community.id))
         }
     }
 
@@ -184,7 +187,7 @@ fun CommunityFeed(   modifier: Modifier = Modifier,
                 modifier = androidx.compose.ui.Modifier.fillMaxSize()
             ) {
                 items(CommunityItems.size) { index ->
-                    CommunityItemView(CommunityItems[index])
+                    CommunityItemView(CommunityItems[index], navController)
                 }
             }
         }
@@ -192,13 +195,13 @@ fun CommunityFeed(   modifier: Modifier = Modifier,
 }
 
 @Composable
-fun CommunityItemView(item: CommunityItem) {
+fun CommunityItemView(item: CommunityItem, navController: NavController) {
     Column(
         modifier = androidx.compose.ui.Modifier
             .padding(8.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.LightGray.copy(alpha = 0.5f)),
+            .background(Color(0xFF1E90FF)),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -211,20 +214,44 @@ fun CommunityItemView(item: CommunityItem) {
                 .fillMaxWidth()
                 .aspectRatio(2f)
                 .clip(RoundedCornerShape(16.dp)),
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.Crop
         )
 
         Spacer(modifier = androidx.compose.ui.Modifier.height(8.dp))
 
-        Text(
-            text = item.date,
-            fontSize = 32.sp,
-            color = Color.Black,
-            textAlign = TextAlign.Center
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = item.date,
+                fontSize = 18.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.CenterVertically)
+            )
+
+            Button(
+                onClick = { navController.navigate("CommunityPosts/${item.communityId}")},
+                modifier = Modifier
+                    .align(Alignment.CenterVertically),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black,
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    "Join",
+                    color = Color.White
+                )
+            }
+        }
     }
 }
 
 
-data class CommunityItem(val date: String, val imageRes: String)
+data class CommunityItem(val date: String, val imageRes: String, val communityId: String)
 

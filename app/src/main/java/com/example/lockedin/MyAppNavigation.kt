@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
 import com.example.lockedin.store.presentation.community_feed.CommunityFeed
+import com.example.lockedin.store.presentation.community_posts.CommunityPosts
 import com.example.lockedin.store.presentation.create_community_screen.CreateCommunityScreen
 import com.example.lockedin.store.presentation.login_screen.LoginScreen
 import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
@@ -40,6 +41,13 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
             composable("CreateCommunityScreen"){
                 CreateCommunityScreen(modifier, navController, authViewModel, communityViewModel)
             }
+            composable("CommunityPosts/{communityId}"){ backStackEntry ->
+                val communityId = backStackEntry.arguments?.getString("communityId")
+                if (communityId != null) {
+                    CommunityPosts(modifier, navController, authViewModel, communityViewModel, communityId = communityId)
+                }
+            }
+
         })
     }
 

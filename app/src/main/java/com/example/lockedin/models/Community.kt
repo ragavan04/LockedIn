@@ -10,4 +10,5 @@ data class Community(
     val ownerId: String =  "String",
     var memberId: List<Member> =  emptyList(),
     var posts: List<Post> = emptyList(),
+    var id: String =  "String",
 )
