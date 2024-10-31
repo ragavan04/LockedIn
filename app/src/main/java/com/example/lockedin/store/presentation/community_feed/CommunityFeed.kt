@@ -31,26 +31,51 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import com.example.lockedin.BottomNavigationBar
 import com.example.lockedin.R
 import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
+import com.example.lockedin.models.Community
+import com.example.lockedin.models.CommunityViewModel
 import com.example.lockedin.store.presentation.progress_screen.ProgressItem
 import com.example.lockedin.store.presentation.progress_screen.ProgressItemView
 import com.example.lockedin.store.presentation.util.components.LoadingDialog
 import org.checkerframework.common.subtyping.qual.Bottom
-import java.lang.reflect.Modifier
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 @Composable
-fun CommunityFeed(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, navController: NavController, authViewModel: AuthViewModel) {
+fun CommunityFeed(   modifier: Modifier = Modifier,
+                     navController: NavController,
+                     authViewModel: AuthViewModel,
+                     communityViewModel: CommunityViewModel = viewModel()
+) {
     val authState = authViewModel.authState.observeAsState()
 
     LaunchedEffect(authState.value) {
         when(authState.value){
             is AuthState.Unauthenticated -> navController.navigate("login")
             else -> Unit
+        }
+    }
+
+    // Trigger community data fetching
+    LaunchedEffect(Unit) {
+        communityViewModel.fetchCommunities()
+    }
+
+    // Observe the community list
+    val communities = communityViewModel.communityList
+    val CommunityItems = remember{ mutableListOf<CommunityItem>() }
+
+    // Clear and populate communityItems only once when the data changes
+    LaunchedEffect(communities) {
+        CommunityItems.clear()
+        for (community in communities) {
+            CommunityItems.add(CommunityItem(community.name, community.communityImage))
         }
     }
 
@@ -154,18 +179,12 @@ fun CommunityFeed(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
 
             Spacer(modifier = androidx.compose.ui.Modifier.height(40.dp))
 
-            val progressItems = listOf(
-                ProgressItem("Swimming", R.drawable.samplecommunity1),
-                ProgressItem("Tennis", R.drawable.samplecommunity2),
-                ProgressItem("Working Out", R.drawable.samplecommunity3)
-            )
-
             LazyVerticalGrid(
                 columns = GridCells.Fixed(1),
                 modifier = androidx.compose.ui.Modifier.fillMaxSize()
             ) {
-                items(progressItems.size) { index ->
-                    ProgressItemView(progressItems[index])
+                items(CommunityItems.size) { index ->
+                    CommunityItemView(CommunityItems[index])
                 }
             }
         }
@@ -173,7 +192,7 @@ fun CommunityFeed(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
 }
 
 @Composable
-fun ProgressItemView(item: ProgressItem) {
+fun CommunityItemView(item: CommunityItem) {
     Column(
         modifier = androidx.compose.ui.Modifier
             .padding(8.dp)
@@ -185,7 +204,7 @@ fun ProgressItemView(item: ProgressItem) {
     ) {
         Image(
 
-            painter = painterResource(item.imageRes),
+            painter = painterResource(R.drawable.samplecommunity2),
             contentDescription = null,
 
             modifier = androidx.compose.ui.Modifier
@@ -207,5 +226,5 @@ fun ProgressItemView(item: ProgressItem) {
 }
 
 
-data class ProgressItem(val date: String, val imageRes: Int)
+data class CommunityItem(val date: String, val imageRes: String)
 
