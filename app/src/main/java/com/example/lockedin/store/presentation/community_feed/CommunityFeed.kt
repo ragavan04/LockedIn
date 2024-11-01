@@ -48,13 +48,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lockedin.store.presentation.community_posts.CommunityPosts
 
-
-
 @Composable
-fun CommunityFeed(   modifier: Modifier = Modifier,
-                     navController: NavController,
-                     authViewModel: AuthViewModel,
-                     communityViewModel: CommunityViewModel = viewModel()
+fun CommunityFeed(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    authViewModel: AuthViewModel,
+    communityViewModel: CommunityViewModel = viewModel()
 ) {
     val authState = authViewModel.authState.observeAsState()
 
@@ -83,73 +82,46 @@ fun CommunityFeed(   modifier: Modifier = Modifier,
     }
 
     Scaffold(
-        bottomBar = { BottomNavigationBar(navController) }
+        bottomBar = { BottomNavigationBar(navController) },
+        modifier = Modifier.background(Color.Black) // Set the Scaffold background to black
     ) {
-        Row(
-            modifier = androidx.compose.ui.Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-
-            Text(
-                text = "<",
-                fontSize = 42.sp,
-                color = Color.Black,
-                modifier = androidx.compose.ui.Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                textAlign = TextAlign.Left
-            )
-
-
-        }
-
-        //Spacer(modifier = androidx.compose.ui.Modifier.height(40.dp))
-
         Column(
-            modifier = androidx.compose.ui.Modifier
+            modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black) // Set the Column background to black
                 .padding(28.dp)
         ) {
             // Title
             Text(
                 text = "\nFind Your",
-
                 fontSize = 42.sp,
-                color = Color.Black,
-                modifier = androidx.compose.ui.Modifier
+                color = Color.White,
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
                 textAlign = TextAlign.Left
             )
 
-            // Title
             Text(
                 text = "Community",
                 fontSize = 54.sp,
-                color = Color.Black,
-                modifier = androidx.compose.ui.Modifier
+                color = Color.White,
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
                 textAlign = TextAlign.Left
             )
 
-
             Row(
-
-                modifier = androidx.compose.ui.Modifier
+                modifier = Modifier
                     .fillMaxWidth()
-
             ) {
-
                 Button(
                     onClick = {
                         // Handle button click action here
                     },
-                    modifier = androidx.compose.ui.Modifier
+                    modifier = Modifier
                         .padding(8.dp),
-
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.LightGray.copy(alpha = 0.5f),  // Customize the button background
                         contentColor = Color.White    // Customize the text color
@@ -164,9 +136,8 @@ fun CommunityFeed(   modifier: Modifier = Modifier,
                     onClick = {
                         // Handle button click action here
                     },
-                    modifier = androidx.compose.ui.Modifier
+                    modifier = Modifier
                         .padding(8.dp),
-
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,  // Customize the button background
                         contentColor = Color.White    // Customize the text color
@@ -176,15 +147,13 @@ fun CommunityFeed(   modifier: Modifier = Modifier,
                         text = "Your Communities"
                     )  // The button label
                 }
-
             }
 
-
-            Spacer(modifier = androidx.compose.ui.Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(1),
-                modifier = androidx.compose.ui.Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize()
             ) {
                 items(CommunityItems.size) { index ->
                     CommunityItemView(CommunityItems[index], navController)
@@ -197,7 +166,7 @@ fun CommunityFeed(   modifier: Modifier = Modifier,
 @Composable
 fun CommunityItemView(item: CommunityItem, navController: NavController) {
     Column(
-        modifier = androidx.compose.ui.Modifier
+        modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
@@ -206,18 +175,16 @@ fun CommunityItemView(item: CommunityItem, navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-
             painter = painterResource(R.drawable.samplecommunity2),
             contentDescription = null,
-
-            modifier = androidx.compose.ui.Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(2f)
                 .clip(RoundedCornerShape(16.dp)),
             contentScale = ContentScale.Crop
         )
 
-        Spacer(modifier = androidx.compose.ui.Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Row(
             modifier = Modifier
@@ -235,9 +202,8 @@ fun CommunityItemView(item: CommunityItem, navController: NavController) {
             )
 
             Button(
-                onClick = { navController.navigate("CommunityPosts/${item.communityId}")},
-                modifier = Modifier
-                    .align(Alignment.CenterVertically),
+                onClick = { navController.navigate("CommunityPosts/${item.communityId}") },
+                modifier = Modifier.align(Alignment.CenterVertically),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
                     contentColor = Color.White
@@ -252,6 +218,4 @@ fun CommunityItemView(item: CommunityItem, navController: NavController) {
     }
 }
 
-
 data class CommunityItem(val date: String, val imageRes: String, val communityId: String)
-
