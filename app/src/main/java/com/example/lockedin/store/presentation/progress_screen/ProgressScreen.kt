@@ -23,10 +23,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.Scaffold
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import com.example.lockedin.BottomNavigationBar
 import com.example.lockedin.R
 import com.example.lockedin.models.AuthViewModel
+import com.example.lockedin.ui.theme.poppinsFontFamily
 
 @Composable
 fun ProgressScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, navController: NavController, authViewModel: AuthViewModel) {
@@ -37,13 +40,15 @@ fun ProgressScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color(0xFF131313))
                 .padding(16.dp)
         ) {
             // Title
             Text(
-                text = "Progess",
+                text = "PROGRESS",
                 fontSize = 24.sp,
-                color = Color.Black,
+                color = Color.White,
+                fontFamily = poppinsFontFamily,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
@@ -52,7 +57,7 @@ fun ProgressScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.
 
             // Divider
             Divider(
-                color = Color.Black,
+                color = Color.White,
                 thickness = 2.dp,
                 modifier = Modifier
                     .fillMaxWidth()
