@@ -15,6 +15,7 @@ import com.example.lockedin.store.presentation.create_community_screen.CreateCom
 import com.example.lockedin.store.presentation.login_screen.LoginScreen
 import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
 import com.example.lockedin.store.presentation.signup_screen.SignupScreen
+//import com.example.lockedin.store.presentation.search_screen.SearchScreen
 
 
 @Composable
@@ -38,6 +39,9 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
             composable("profile_screen"){
                 ProfileScreen(modifier, navController, authViewModel)
             }
+//            composable("search_screen") {
+//                SearchScreen(modifier, navController, authViewModel)
+//}
             composable("CreateCommunityScreen"){
                 CreateCommunityScreen(modifier, navController, authViewModel, communityViewModel)
             }

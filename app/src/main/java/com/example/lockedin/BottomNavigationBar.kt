@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
@@ -21,6 +22,7 @@ fun BottomNavigationBar(navController: NavController) {
         BottomNavItem("Community", "community_screen", Icons.Default.Home),
         BottomNavItem("Progress", "progress_screen", Icons.Default.Star),
         BottomNavItem("Profile", "profile_screen", Icons.Default.Person),
+//        BottomNavItem("Search", "search_screen", Icons.Default.Search),
         BottomNavItem("Test-Community", "CreateCommunityScreen", Icons.Default.Email)
     )
 

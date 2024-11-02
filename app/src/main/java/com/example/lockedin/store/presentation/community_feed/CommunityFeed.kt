@@ -48,6 +48,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lockedin.store.presentation.community_posts.CommunityPosts
 
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+
 @Composable
 fun CommunityFeed(
     modifier: Modifier = Modifier,
@@ -70,8 +84,10 @@ fun CommunityFeed(
     }
 
     // Observe the community list
-    val communities = communityViewModel.communityList
+//    val communities = communityViewModel.communityList
     val CommunityItems = remember{ mutableListOf<CommunityItem>() }
+    val communities by remember { communityViewModel.communityList }
+    
 
     // Clear and populate communityItems only once when the data changes
     LaunchedEffect(communities) {
@@ -113,40 +129,59 @@ fun CommunityFeed(
             )
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
+                 modifier = Modifier
+                .fillMaxWidth(),
+//                .padding(horizontal = 1.dp),  // Move padding to Row instead of TextField
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
-                    onClick = {
-                        // Handle button click action here
-                    },
+
+                var searchQuery by remember { mutableStateOf("") }
+
+                TextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Search for communities...", color = Color.Gray) },
                     modifier = Modifier
-                        .padding(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.LightGray.copy(alpha = 0.5f),  // Customize the button background
-                        contentColor = Color.White    // Customize the text color
+//                        .fillMaxWidth()
+                        .height(56.dp)
+                        .padding(horizontal = 16.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color(0xFF333333),
+                        focusedContainerColor = Color(0xFF333333),
+                        unfocusedTextColor = Color.White,
+                        focusedTextColor = Color.White
+                    ),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            communityViewModel.searchCommunities(searchQuery)
+                        }
                     )
+                )
+
+                IconButton(
+                    onClick = {
+                        if (searchQuery.isEmpty()) {
+                            communityViewModel.fetchCommunities()
+                        } else {
+                            println("Search Query is looking for: ${searchQuery}")
+                            communityViewModel.searchCommunities(searchQuery)
+                        }
+                    },
+                    modifier = Modifier.padding(start = 8.dp)
                 ) {
-                    Text(
-                        text = "Join Community"
-                    )  // The button label
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = Color.White
+                    )
                 }
 
-                Button(
-                    onClick = {
-                        // Handle button click action here
-                    },
-                    modifier = Modifier
-                        .padding(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,  // Customize the button background
-                        contentColor = Color.White    // Customize the text color
-                    )
-                ) {
-                    Text(
-                        text = "Your Communities"
-                    )  // The button label
-                }
+                
+
             }
 
             Spacer(modifier = Modifier.height(40.dp))

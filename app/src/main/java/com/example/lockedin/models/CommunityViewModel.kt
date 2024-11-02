@@ -171,4 +171,51 @@ class CommunityViewModel : ViewModel() {
             }
         }
     }
+
+    // function to search communities by name or description    
+    fun searchCommunities(query: String) {
+        viewModelScope.launch {
+            try {
+                val searchResults = mutableStateListOf<Community>()
+                val queryLower = query.lowercase()
+                
+                println("Initiating search for communities with query: '$query'")
+
+                // Get all communities and filter locally
+                val snapshot = db.collection("communities").get().await()
+                
+                println("Total communities fetched for search: ${snapshot.documents.size}")
+                
+                for (doc in snapshot.documents) {
+                    val community = doc.toObject(Community::class.java)
+                    if (community != null) {
+                        community.id = doc.id
+                        val nameMatches = community.name.lowercase().contains(queryLower)
+                        val descriptionMatches = community.description?.lowercase()?.contains(queryLower) == true
+
+                        if (nameMatches || descriptionMatches) {
+                            println("Matching community found: ${community.name} (ID: ${community.id})")
+                            searchResults.add(community)
+                        } else {
+                            println("Community '${community.name}' did not match the query.")
+                        }
+                    }
+                }
+                
+                // Update the community list with search results
+                communityList.clear()
+                communityList.addAll(searchResults)
+
+                if (searchResults.isEmpty()) {
+                    println("No communities matched the query: '$query'")
+                } else {
+                    println("Search complete. Total matching communities: ${searchResults.size}")
+                }
+                
+            } catch (e: Exception) {
+                println("Error searching communities: ${e.message}")
+            }
+        }
+    }
+
 }
