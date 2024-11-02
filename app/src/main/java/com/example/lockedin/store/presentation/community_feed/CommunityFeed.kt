@@ -84,10 +84,9 @@ fun CommunityFeed(
     }
 
     // Observe the community list
-//    val communities = communityViewModel.communityList
+    val communities = communityViewModel.communityList
     val CommunityItems = remember{ mutableListOf<CommunityItem>() }
-    val communities by remember { communityViewModel.communityList }
-    
+
 
     // Clear and populate communityItems only once when the data changes
     LaunchedEffect(communities) {
