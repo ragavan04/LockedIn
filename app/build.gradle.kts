@@ -66,10 +66,14 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc02")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.0-rc02")
     implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation ("com.google.firebase:firebase-firestore-ktx")
+
 
 
     implementation("androidx.compose.material:material:1.7.4")
