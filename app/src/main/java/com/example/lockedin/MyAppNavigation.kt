@@ -11,9 +11,10 @@ import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
 import com.example.lockedin.store.presentation.community_feed.CommunityFeed
 import com.example.lockedin.store.presentation.community_posts.CommunityPosts
+import com.example.lockedin.store.presentation.my_progress_screen.MyProgressScreen
 import com.example.lockedin.store.presentation.create_community_screen.CreateCommunityScreen
 import com.example.lockedin.store.presentation.login_screen.LoginScreen
-import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
+//import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
 import com.example.lockedin.store.presentation.signup_screen.SignupScreen
 //import com.example.lockedin.store.presentation.search_screen.SearchScreen
 
@@ -33,8 +34,8 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
             composable("community_screen") {
                 CommunityFeed(modifier, navController, authViewModel)
             }
-            composable("progress_screen"){
-                ProgressScreen(modifier, navController, authViewModel)
+            composable("my_progress_screen"){
+                MyProgressScreen(modifier, navController, authViewModel)
             }
             composable("profile_screen"){
                 ProfileScreen(modifier, navController, authViewModel)
