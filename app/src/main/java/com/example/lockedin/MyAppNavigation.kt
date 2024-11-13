@@ -15,6 +15,8 @@ import com.example.lockedin.store.presentation.create_community_screen.CreateCom
 import com.example.lockedin.store.presentation.login_screen.LoginScreen
 import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
 import com.example.lockedin.store.presentation.signup_screen.SignupScreen
+import com.example.lockedin.store.presentation.upload_post.UploadPost
+
 //import com.example.lockedin.store.presentation.search_screen.SearchScreen
 
 
@@ -51,7 +53,12 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
                     CommunityPosts(modifier, navController, authViewModel, communityViewModel, communityId = communityId)
                 }
             }
-
+            composable("UploadPost/{communityId}"){ backStackEntry ->
+                val communityId = backStackEntry.arguments?.getString("communityId")
+                if (communityId != null) {
+                    UploadPost(modifier, navController, authViewModel, communityViewModel, communityId = communityId)
+                }
+            }
         })
     }
 

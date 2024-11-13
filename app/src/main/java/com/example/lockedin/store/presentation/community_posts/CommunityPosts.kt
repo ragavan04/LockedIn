@@ -1,5 +1,7 @@
 package com.example.lockedin.store.presentation.community_posts
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.text.format.DateUtils
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -10,10 +12,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.TabRowDefaults.Divider
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,8 +30,14 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import com.example.lockedin.models.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.URL
 
 
 @Composable
@@ -60,7 +65,7 @@ fun CommunityPosts(modifier: Modifier = Modifier, navController: NavController, 
             .background(Color(0xFF131313))
     ) {
         community?.let {
-            CommunityHeader(community, navController)
+            CommunityHeader(community, navController, communityId)
         }
 
         LazyVerticalGrid(
@@ -78,7 +83,7 @@ fun CommunityPosts(modifier: Modifier = Modifier, navController: NavController, 
 
 @Composable
 fun CommunityHeader(
-    community: Community, navController: NavController
+    community: Community, navController: NavController, communityId: String
 ) {
     Column(
         modifier = Modifier
@@ -135,7 +140,7 @@ fun CommunityHeader(
 
             // Create Post IconButton
             IconButton(
-                onClick = { /* Leave blank for navigation */ },
+                onClick = {navController.navigate("UploadPost/$communityId")},
                 modifier = Modifier.size(36.dp)
             ) {
                 Image(
@@ -170,6 +175,13 @@ fun CommunityHeader(
 
 @Composable
 fun PostItem(post: Post) {
+    var postImage by remember { mutableStateOf<ImageBitmap?>(null) }
+    var profileImage by remember { mutableStateOf<ImageBitmap?>(null) }
+
+    // Load the post image in the background
+    LaunchedEffect(post.imageURL) {
+        postImage = loadImageFromUrl(post.imageURL)
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -178,14 +190,16 @@ fun PostItem(post: Post) {
             .background(Color(0xFF333333)),
     ) {
         // Image part of the post
-        Image(
-            painter = painterResource(R.drawable.sampledumbbell), // Replace with network image if applicable
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-        )
+        postImage?.let { image ->
+            Image(
+                bitmap = image,
+                contentDescription = "Post Image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)
+            )
+        }
 
         // Post metadata section
         Row(
@@ -208,7 +222,7 @@ fun PostItem(post: Post) {
             // User info and timestamp
             Column {
                 Text(
-                    text = "sampleuser", // Display the user's name
+                    text = post.userId, // Display the user's name
                     fontSize = 16.sp,
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold
@@ -247,6 +261,27 @@ fun PostItem(post: Post) {
     }
 
 }
+
+// Helper function to load an image from URL
+suspend fun loadImageFromUrl(url: String): ImageBitmap? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val connection = URL(url).openConnection()
+            connection.doInput = true
+            connection.connect()
+            val inputStream = connection.getInputStream()
+            val options = BitmapFactory.Options().apply {
+                inPreferredConfig = Bitmap.Config.ARGB_8888 // Use higher-quality color config
+                inScaled = false // Disable scaling down
+            }
+            BitmapFactory.decodeStream(inputStream, null, options)?.asImageBitmap()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+}
+
 
 fun formatEpochToRelativeTime(epochMillis: Long): String {
     return DateUtils.getRelativeTimeSpanString(

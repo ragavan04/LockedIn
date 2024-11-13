@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "145467039327",
     "project_id": "lockedin-3df47",
-    "storage_bucket": "lockedin-3df47.appspot.com"
+    "storage_bucket": "lockedin-3df47.firebasestorage.app"
   },
   "client": [
     {
@@ -12,7 +12,12 @@
           "package_name": "com.example.lockedin"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "145467039327-qeqo3443co39888pt91i43ohdss67t08.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyABDoXaJd3aWy13ZYFZEoL8CjSk4UDL9Tc"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "145467039327-qeqo3443co39888pt91i43ohdss67t08.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
