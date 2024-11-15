@@ -23,7 +23,6 @@ fun BottomNavigationBar(navController: NavController) {
         BottomNavItem("Progress", "my_progress_screen", Icons.Default.Star),
         BottomNavItem("Profile", "profile_screen", Icons.Default.Person),
 //        BottomNavItem("Search", "search_screen", Icons.Default.Search),
-        BottomNavItem("Test-Community", "CreateCommunityScreen", Icons.Default.Email)
     )
 
     BottomNavigation(

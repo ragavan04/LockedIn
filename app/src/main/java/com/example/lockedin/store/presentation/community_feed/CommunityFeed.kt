@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -107,6 +108,29 @@ fun CommunityFeed(
                 .background(Color.Black) // Set the Column background to black
                 .padding(28.dp)
         ) {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Button(
+                    onClick = {
+                        navController.navigate("CreateCommunityScreen")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    shape = CircleShape,
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier
+                        .size(45.dp)
+                ) {
+                    Text(text = "+", fontSize = 25.sp)
+                }
+            }
+
             // Title
             Text(
                 text = "\nFind Your",
@@ -180,7 +204,7 @@ fun CommunityFeed(
                     )
                 }
 
-                
+
 
             }
 
