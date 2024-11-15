@@ -149,6 +149,7 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
 
                 Button(onClick = {
                     communityViewModel.createCommunity(communityName, description, communityPicture, userViewModel)
+                    navController.navigate("community_screen")
 
                 },
                     modifier = Modifier
