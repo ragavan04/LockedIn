@@ -41,9 +41,10 @@ class AuthViewModel : ViewModel(){
             }
     }
 
-    fun signup(email: String, password: String, username: String, profilePicUrl: String){
+    fun signup(email: String, password: String, username: String, profilePicUrl: String, userViewModel: UserViewModel){
         Log.d("username", username)
         Log.d("profilepic", profilePicUrl)
+
 
         if (email.isEmpty() || password.isEmpty()){
             _authState.value = AuthState.Error("Email or password can't be empty")
@@ -71,15 +72,14 @@ class AuthViewModel : ViewModel(){
                 }
             }
 
-
-
-
     }
 
     fun signout(){
         auth.signOut()
         _authState.value = AuthState.Unauthenticated
     }
+
+
 
 }
 

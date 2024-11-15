@@ -47,8 +47,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lockedin.store.presentation.community_posts.CommunityPosts
-
 import androidx.compose.material3.TextField
+import com.example.lockedin.models.UserViewModel
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -67,6 +67,7 @@ fun CommunityFeed(
     modifier: Modifier = Modifier,
     navController: NavController,
     authViewModel: AuthViewModel,
+    userViewModel: UserViewModel,
     communityViewModel: CommunityViewModel = viewModel()
 ) {
     val authState = authViewModel.authState.observeAsState()
@@ -190,7 +191,7 @@ fun CommunityFeed(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(CommunityItems.size) { index ->
-                    CommunityItemView(CommunityItems[index], navController)
+                    CommunityItemView(CommunityItems[index], navController, userViewModel)
                 }
             }
         }
@@ -198,7 +199,7 @@ fun CommunityFeed(
 }
 
 @Composable
-fun CommunityItemView(item: CommunityItem, navController: NavController) {
+fun CommunityItemView(item: CommunityItem, navController: NavController, userViewModel: UserViewModel) {
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -236,7 +237,12 @@ fun CommunityItemView(item: CommunityItem, navController: NavController) {
             )
 
             Button(
-                onClick = { navController.navigate("CommunityPosts/${item.communityId}") },
+                onClick = {
+
+                    userViewModel.joinUserCommunity(item.communityId)
+                    navController.navigate("CommunityPosts/${item.communityId}")
+
+                          },
                 modifier = Modifier.align(Alignment.CenterVertically),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,

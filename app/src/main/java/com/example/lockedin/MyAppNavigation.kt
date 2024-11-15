@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
+import com.example.lockedin.models.UserViewModel
 import com.example.lockedin.store.presentation.community_feed.CommunityFeed
 import com.example.lockedin.store.presentation.community_posts.CommunityPosts
 import com.example.lockedin.store.presentation.my_progress_screen.MyProgressScreen
@@ -22,7 +23,7 @@ import com.example.lockedin.store.presentation.upload_post.UploadPost
 
 
 @Composable
-fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel, communityViewModel: CommunityViewModel) {
+fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel, communityViewModel: CommunityViewModel, userViewModel: UserViewModel) {
     val navController = rememberNavController()
     Scaffold(
     ) {
@@ -31,13 +32,13 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
                 LoginScreen(modifier, navController, authViewModel)
             }
             composable("signup") {
-                SignupScreen(modifier, navController, authViewModel)
+                SignupScreen(modifier, navController, authViewModel, userViewModel)
             }
             composable("community_screen") {
-                CommunityFeed(modifier, navController, authViewModel)
+                CommunityFeed(modifier, navController, authViewModel, userViewModel)
             }
             composable("my_progress_screen"){
-                MyProgressScreen(modifier, navController, authViewModel)
+                MyProgressScreen(modifier, navController, authViewModel, userViewModel)
             }
             composable("profile_screen"){
                 ProfileScreen(modifier, navController, authViewModel)
@@ -46,7 +47,7 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
 //                SearchScreen(modifier, navController, authViewModel)
 //}
             composable("CreateCommunityScreen"){
-                CreateCommunityScreen(modifier, navController, authViewModel, communityViewModel)
+                CreateCommunityScreen(modifier, navController, authViewModel, communityViewModel, userViewModel)
             }
             composable("CommunityPosts/{communityId}"){ backStackEntry ->
                 val communityId = backStackEntry.arguments?.getString("communityId")

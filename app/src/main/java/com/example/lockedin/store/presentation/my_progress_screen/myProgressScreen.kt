@@ -43,10 +43,11 @@ import com.example.lockedin.store.presentation.progress_screen.ProgressItemView
 import com.example.lockedin.models.CommunityViewModel
 import com.example.lockedin.store.presentation.community_feed.CommunityItem
 import com.example.lockedin.store.presentation.community_feed.CommunityItemView
+import com.example.lockedin.models.UserViewModel
 import com.example.lockedin.ui.theme.poppinsFontFamily
 
 @Composable
-fun MyProgressScreen(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel, communityViewModel: CommunityViewModel = viewModel()) {
+fun MyProgressScreen(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel, communityViewModel: CommunityViewModel = viewModel()) {
 
     val CommunityItems = remember{ mutableListOf<CommunityItem>() }
 
@@ -99,7 +100,7 @@ fun MyProgressScreen(modifier: Modifier = Modifier, navController: NavController
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(CommunityItems.size) { index ->
-                    CommunityItemView(CommunityItems[index], navController)
+                    CommunityItemView(CommunityItems[index], navController, userViewModel)
                 }
             }
 
