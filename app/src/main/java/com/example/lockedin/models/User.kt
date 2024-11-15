@@ -1,7 +1,8 @@
 package com.example.lockedin.models
 
 data class User(
-    val username: String = "",
-    val points: Int = 0,
+    var userID: String = "",
+    var username: String = "",
+    var points: Int = 0,
     var communities: List<UserCommunity> =  emptyList()
 )

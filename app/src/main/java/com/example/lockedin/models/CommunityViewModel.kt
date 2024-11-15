@@ -30,10 +30,13 @@ class CommunityViewModel : ViewModel() {
 
 
     // LOGIC FOR PUSHING DATA TO DB
-    fun createCommunity(name: String, description: String, communityPicture: String) {
+    fun createCommunity(name: String, description: String, communityPicture: String, userViewModel: UserViewModel) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             val communityId = UUID.randomUUID().toString()  // Generate a unique community ID
+
+
+            userViewModel.joinUserCommunity(communityId)
 
             // Create a community object to store in Firestore
             val community = hashMapOf(

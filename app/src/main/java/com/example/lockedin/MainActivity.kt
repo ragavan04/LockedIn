@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
+import com.example.lockedin.models.UserViewModel
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -39,8 +40,9 @@ class MainActivity : ComponentActivity() {
 fun MyApp() {
     val authViewModel: AuthViewModel = viewModel()
     val communityViewModel: CommunityViewModel = viewModel()
+    val userViewModel: UserViewModel = viewModel()
     Scaffold (modifier = Modifier.fillMaxSize()) {
-        innerPadding -> MyAppNavigation(authViewModel = authViewModel, modifier = Modifier.padding(innerPadding), communityViewModel = communityViewModel)
+        innerPadding -> MyAppNavigation(authViewModel = authViewModel, modifier = Modifier.padding(innerPadding), communityViewModel = communityViewModel, userViewModel = userViewModel)
     }
 }
 

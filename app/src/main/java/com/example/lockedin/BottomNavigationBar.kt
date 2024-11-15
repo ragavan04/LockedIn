@@ -20,7 +20,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
         BottomNavItem("Community", "community_screen", Icons.Default.Home),
-        BottomNavItem("Progress", "progress_screen", Icons.Default.Star),
+        BottomNavItem("Progress", "my_progress_screen", Icons.Default.Star),
         BottomNavItem("Profile", "profile_screen", Icons.Default.Person),
 //        BottomNavItem("Search", "search_screen", Icons.Default.Search),
         BottomNavItem("Test-Community", "CreateCommunityScreen", Icons.Default.Email)

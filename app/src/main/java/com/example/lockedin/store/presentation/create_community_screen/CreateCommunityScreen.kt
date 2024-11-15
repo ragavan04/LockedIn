@@ -33,10 +33,11 @@ import com.example.lockedin.R
 import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
+import com.example.lockedin.models.UserViewModel
 
 
 @Composable
-fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel, communityViewModel: CommunityViewModel) {
+fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel, communityViewModel: CommunityViewModel, userViewModel: UserViewModel) {
 
     var communityName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -147,7 +148,7 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
                 Spacer(modifier = Modifier.height(40.dp))
 
                 Button(onClick = {
-                    communityViewModel.createCommunity(communityName, description, communityPicture)
+                    communityViewModel.createCommunity(communityName, description, communityPicture, userViewModel)
 
                 },
                     modifier = Modifier

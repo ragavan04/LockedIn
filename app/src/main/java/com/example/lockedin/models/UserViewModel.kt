@@ -26,156 +26,110 @@ class UserViewModel : ViewModel() {
     val userList = mutableStateListOf<User>()
 
     // List to hold posts for a specific community
-    val postsForCommunity = mutableStateListOf<Post>()
 
-    val currentCommunity = mutableStateOf<Community?>(null)
+
+    val currentUserCommunity = mutableStateOf<UserCommunity?>(null)
 
 
     // LOGIC FOR PUSHING USER DATA TO DATABASE
     fun createUser(username: String) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            val userID = currentUser.uid  // Generate a unique community ID
+            var userID = currentUser.uid
 
             // Create a community object to store in Firestore
             val user = hashMapOf(
+                "userID" to userID,
                 "username" to username
             )
 
-            // Store the community in Firestore
+            // Store the user in Firestore
             db.collection("users").document(userID)
                 .set(user, SetOptions.merge())
+                .addOnSuccessListener {
+                    println("User sucessfully a7777dded!")
+                }
                 .addOnFailureListener { e ->
-                    println("Error storing user: $e")
+                    println("Error storing use777r: $e")
                 }
         } else {
-            println("User not authenticated!")
+            println("User not authenticated777!")
         }
     }
 
-    fun fetchCommunities() {
+
+    fun joinUserCommunity(communityID: String) {
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            val userID = currentUser.uid
+
+        val userCommunity = hashMapOf(
+            "communityID" to communityID,
+            "points" to 0,
+            "streak" to 0
+        )
+
+        db.collection("users").document(userID)
+            .collection("communities").document(communityID).set(userCommunity, SetOptions.merge())
+            .addOnFailureListener { e ->
+                println("Error storing user: $e")
+            }
+
+        }
+    }
+
+    fun fetchUsers() {
         viewModelScope.launch {
             try{
                 val db = FirebaseFirestore.getInstance()
-                println("Attempting to fetch communities...")
-                val communitySnapshot = db.collection("communities").get().await()
-                println("Communities fetched: ${communitySnapshot.documents.size}")
+                println("Attempting to fetch users...")
+                val userSnapshot = db.collection("users").get().await()
+                println("Users fetched: ${userSnapshot.documents.size}")
 
-                communityList.clear()
+                userList.clear()
 
-                for (communityDoc in communitySnapshot.documents) {
-                    val community = communityDoc.toObject(Community::class.java)
-                    if (community != null) {
-                        community.id = communityDoc.id
+                for (usersDoc in userSnapshot.documents) {
+                    val users = usersDoc.toObject(User::class.java)
+                    val currentUser = auth.currentUser
+                    if (users != null) {
+                        users.userID = usersDoc.id
 
-                        println("Community found: ${community.name}")
+                        println("Users found: ${users.username}")
 
-                        // Fetch members for each community
-                        val membersSnapshot = communityDoc.reference.collection("members").get().await()
-                        val members = membersSnapshot.toObjects(Member::class.java)
-                        println("Members found: ${members.size}")
-
-                        // Fetch posts for each community
-                        val postsSnapshot = communityDoc.reference.collection("posts").get().await()
-                        val posts = postsSnapshot.toObjects(Post::class.java)
-                        println("Posts found: ${posts.size}")
-
-                        // Assign the subcollection data
-                        community.memberId = members
-                        community.posts = posts
-
-                        communityList.add(community)
+                        userList.add(users)
                     }
                 }
             } catch (e: Exception){
-                println("Error fetching communities: ${e.message}")
+                println("Error fetching users: ${e.message}")
             }
         }
 
     }
 
-    // Function to fetch posts for a specific community by ID
-    fun fetchPostsForCommunity(communityId: String) {
+    fun fetchUserCommunityById(communityId: String) {
         viewModelScope.launch {
             try {
-                // Clear previous posts
-                postsForCommunity.clear()
+                val currentUser = auth.currentUser
+                if(currentUser != null) {
+                    val userID = currentUser.uid
 
-                // Fetch posts for the specific community
-                val postsSnapshot = db.collection("communities")
-                    .document(communityId)
-                    .collection("posts")
-                    .get()
-                    .await()
+                    // Fetch the UserCommunity documents within the User Data Structure
+                    val document = db.collection("users").document(userID)
+                        .collection("communities").document(communityId).get().await()
 
-                // Convert and add posts to the list
-                val posts = postsSnapshot.toObjects(Post::class.java)
-                postsForCommunity.addAll(posts)
+                    val userCommunity = document.toObject(UserCommunity::class.java)
 
-                println("Posts fetched for community ID $communityId: ${posts.size}")
+                    if(userCommunity != null) {
 
-            } catch (e: Exception) {
-                println("Error fetching posts for community ID $communityId: ${e.message}")
-            }
-        }
-    }
+                        println("User Community found: ${userCommunity.id}")
 
-    fun fetchCommunityById(communityId: String) {
-        viewModelScope.launch {
-            try {
-                val document = db.collection("communities").document(communityId).get().await()
-                val community = document.toObject(Community::class.java)
-                currentCommunity.value = community
+                        currentUserCommunity.value = userCommunity
+                    }
+
+                }
             } catch (e: Exception) {
                 println("Error fetching community: ${e.message}")
             }
         }
     }
-
-    // function to search communities by name or description    
-    fun searchCommunities(query: String) {
-        viewModelScope.launch {
-            try {
-                val searchResults = mutableStateListOf<Community>()
-                val queryLower = query.lowercase()
-                
-                println("Initiating search for communities with query: '$query'")
-
-                // Get all communities and filter locally
-                val snapshot = db.collection("communities").get().await()
-                
-                println("Total communities fetched for search: ${snapshot.documents.size}")
-                
-                for (doc in snapshot.documents) {
-                    val community = doc.toObject(Community::class.java)
-                    if (community != null) {
-                        community.id = doc.id
-                        val nameMatches = community.name.lowercase().contains(queryLower)
-                        val descriptionMatches = community.description?.lowercase()?.contains(queryLower) == true
-
-                        if (nameMatches || descriptionMatches) {
-                            println("Matching community found: ${community.name} (ID: ${community.id})")
-                            searchResults.add(community)
-                        } else {
-                            println("Community '${community.name}' did not match the query.")
-                        }
-                    }
-                }
-                
-                // Update the community list with search results
-                communityList.clear()
-                communityList.addAll(searchResults)
-
-                if (searchResults.isEmpty()) {
-                    println("No communities matched the query: '$query'")
-                } else {
-                    println("Search complete. Total matching communities: ${searchResults.size}")
-                }
-                
-            } catch (e: Exception) {
-                println("Error searching communities: ${e.message}")
-            }
-        }
-    }
-
 }

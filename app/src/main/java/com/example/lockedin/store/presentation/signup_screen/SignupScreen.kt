@@ -19,9 +19,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
+import com.example.lockedin.models.UserViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel) {
+fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel) {
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -33,7 +35,10 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
 
     LaunchedEffect(authState.value) {
         when(authState.value){
-            is AuthState.Authenticated -> navController.navigate("community_screen")
+            is AuthState.Authenticated -> {
+                userViewModel.createUser(username)
+                navController.navigate("community_screen")
+            }
             is AuthState.Error -> Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
             else -> Unit
         }
@@ -78,14 +83,19 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
 
         Spacer(modifier = Modifier.height(16.dp))
 
+
         Button(onClick = {
-            authViewModel.signup(email, password, username, profilePicUrl)
+            authViewModel.signup(email, password, username, profilePicUrl, userViewModel)
 //            if (authState.value is AuthState.Authenticated) {
 //                navController.navigate("community_feed")
 //            }
+
+
+
         }){
             Text("Register")
         }
+
 
         Spacer(modifier = Modifier.height(8.dp))
 
