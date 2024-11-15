@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 //import coil3.compose.AsyncImage
 import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
@@ -105,15 +106,15 @@ fun ProfileHeader(name: String, image: Uri?) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Circular profile picture
-//        AsyncImage(
-//            model = image,
-//            contentDescription = "Profile Image",
-//            modifier = Modifier
-//                .size(120.dp) // Increased size to make the profile image larger
-//                .clip(CircleShape)
-//                .border(2.dp, Color.Gray, CircleShape),
-//            contentScale = ContentScale.Crop
-//        )
+        AsyncImage(
+            model = image,
+            contentDescription = "Profile Image",
+            modifier = Modifier
+                .size(120.dp) // Increased size to make the profile image larger
+                .clip(CircleShape)
+                .border(2.dp, Color.Gray, CircleShape),
+            contentScale = ContentScale.Crop
+        )
 
         Spacer(modifier = Modifier.height(12.dp)) // Increased space between image and name
 
