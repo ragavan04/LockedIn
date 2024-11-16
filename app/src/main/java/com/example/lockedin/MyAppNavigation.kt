@@ -12,6 +12,7 @@ import com.example.lockedin.models.CommunityViewModel
 import com.example.lockedin.models.UserViewModel
 import com.example.lockedin.store.presentation.community_feed.CommunityFeed
 import com.example.lockedin.store.presentation.community_posts.CommunityPosts
+import com.example.lockedin.store.presentation.dashboard.DashboardScreen
 import com.example.lockedin.store.presentation.my_progress_screen.MyProgressScreen
 import com.example.lockedin.store.presentation.create_community_screen.CreateCommunityScreen
 import com.example.lockedin.store.presentation.login_screen.LoginScreen
@@ -27,12 +28,15 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
     val navController = rememberNavController()
     Scaffold(
     ) {
-        NavHost(navController, startDestination = "login", builder = {
+        NavHost(navController, startDestination = "dashboard", builder = {
             composable("login") {
                 LoginScreen(modifier, navController, authViewModel)
             }
             composable("signup") {
                 SignupScreen(modifier, navController, authViewModel, userViewModel)
+            }
+            composable("dashboard") {
+                DashboardScreen(modifier, navController, userViewModel)
             }
             composable("community_screen") {
                 CommunityFeed(modifier, navController, authViewModel, userViewModel)

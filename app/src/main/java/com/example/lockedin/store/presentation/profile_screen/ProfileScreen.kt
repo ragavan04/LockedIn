@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
@@ -31,7 +32,7 @@ import com.google.firebase.auth.auth
 
 // Define the colors used in the UI
 val Purple500 = Color(0xFF6200EE)
-val BackgroundColor = Color(0xFFF5F5F5)
+val BackgroundColor = Color.Black
 
 @Composable
 fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, navController: NavController, authViewModel: AuthViewModel) {
@@ -119,8 +120,8 @@ fun ProfileHeader(name: String, image: Uri?) {
         Spacer(modifier = Modifier.height(12.dp)) // Increased space between image and name
 
         // Name (split across two lines)
-        Text(text = name, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-        Text(text = "Simpson", fontSize = 20.sp, fontWeight = FontWeight.Normal, color = Color.Black)
+        Text(text = name, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White)
+//        Text(text = "Simpson", fontSize = 20.sp, fontWeight = FontWeight.Normal, color = Color.White)
     }
 }
 
@@ -128,13 +129,13 @@ fun ProfileHeader(name: String, image: Uri?) {
 fun EditProfileButton() {
     Button(
         onClick = { /* Handle edit profile click */ },
-        colors = ButtonDefaults.buttonColors(LightGray),
+        colors = ButtonDefaults.buttonColors(DarkGray),
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .height(40.dp)
             .width(180.dp)
     ) {
-        Text(text = "Edit Profile", color = Color.Black, fontWeight = FontWeight.Medium)
+        Text(text = "Edit Profile", color = Color.White, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -143,7 +144,7 @@ fun UserBio(bio: String) {
     Text(
         text = bio,
         fontSize = 16.sp,
-        color = Color.Black,
+        color = Color.White,
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(horizontal = 32.dp)
     )
@@ -155,7 +156,8 @@ fun StatsSection(communities: Int, points: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 32.dp)
-            .background(Color(0xFFF1F1F1), shape = RoundedCornerShape(24.dp)) // Made box larger and more rounded
+//            .background(Color(0xFFF1F1F1), shape = RoundedCornerShape(24.dp)) // Made box larger and more rounded
+            .background(Color.DarkGray, shape = RoundedCornerShape(24.dp)) // Made box larger and more rounded
             .padding(24.dp), // Increased padding for a bigger box
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -164,8 +166,8 @@ fun StatsSection(communities: Int, points: Int) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Communities", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = Color.Black)
-            Text(text = "$communities", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "Communities", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = Color.White)
+            Text(text = "$communities", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
 
         // Divider between Communities and Points
@@ -180,8 +182,8 @@ fun StatsSection(communities: Int, points: Int) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Total Points", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = Color.Black)
-            Text(text = "$points", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(text = "Total Points", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = Color.White)
+            Text(text = "$points", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
     }
 }
