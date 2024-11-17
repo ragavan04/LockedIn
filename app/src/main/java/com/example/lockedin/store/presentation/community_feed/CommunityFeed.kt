@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -72,46 +73,34 @@ fun CommunityFeed(
     communityViewModel: CommunityViewModel = viewModel()
 ) {
     val authState = authViewModel.authState.observeAsState()
+    val isLoading by communityViewModel.isLoading
+    val communities = communityViewModel.communityList
 
     LaunchedEffect(authState.value) {
-        when(authState.value){
+        when (authState.value) {
             is AuthState.Unauthenticated -> navController.navigate("login")
             else -> Unit
         }
     }
 
-    // Trigger community data fetching
     LaunchedEffect(Unit) {
         communityViewModel.fetchCommunities()
     }
 
-    // Observe the community list
-    val communities = communityViewModel.communityList
-    val CommunityItems = remember{ mutableListOf<CommunityItem>() }
-
-
-    // Clear and populate communityItems only once when the data changes
-    LaunchedEffect(communities) {
-        CommunityItems.clear()
-        for (community in communities) {
-            CommunityItems.add(CommunityItem(community.name, community.communityImage, community.id))
-        }
-    }
-
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) },
-        modifier = Modifier.background(Color.Black) // Set the Scaffold background to black
+        modifier = Modifier.background(Color.Black)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black) // Set the Column background to black
+                .background(Color.Black)
                 .padding(28.dp)
         ) {
 
+            // Create Community Button
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
                 Button(
@@ -123,15 +112,13 @@ fun CommunityFeed(
                         contentColor = Color.Black
                     ),
                     shape = CircleShape,
-                    contentPadding = PaddingValues(0.dp),
-                    modifier = Modifier
-                        .size(45.dp)
+                    modifier = Modifier.size(45.dp)
                 ) {
                     Text(text = "+", fontSize = 25.sp)
                 }
             }
 
-            // Title
+            // Page Title
             Text(
                 text = "\nFind Your",
                 fontSize = 42.sp,
@@ -141,7 +128,6 @@ fun CommunityFeed(
                     .padding(bottom = 8.dp),
                 textAlign = TextAlign.Left
             )
-
             Text(
                 text = "Community",
                 fontSize = 54.sp,
@@ -152,14 +138,12 @@ fun CommunityFeed(
                 textAlign = TextAlign.Left
             )
 
+            // Search Bar
             Row(
-                 modifier = Modifier
-                .fillMaxWidth(),
-//                .padding(horizontal = 1.dp),  // Move padding to Row instead of TextField
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 var searchQuery by remember { mutableStateOf("") }
 
                 TextField(
@@ -167,7 +151,6 @@ fun CommunityFeed(
                     onValueChange = { searchQuery = it },
                     placeholder = { Text("Search for communities...", color = Color.Gray) },
                     modifier = Modifier
-//                        .fillMaxWidth()
                         .height(56.dp)
                         .padding(horizontal = 16.dp),
                     colors = TextFieldDefaults.colors(
@@ -191,7 +174,6 @@ fun CommunityFeed(
                         if (searchQuery.isEmpty()) {
                             communityViewModel.fetchCommunities()
                         } else {
-                            println("Search Query is looking for: ${searchQuery}")
                             communityViewModel.searchCommunities(searchQuery)
                         }
                     },
@@ -203,19 +185,39 @@ fun CommunityFeed(
                         tint = Color.White
                     )
                 }
-
-
-
             }
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(1),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(CommunityItems.size) { index ->
-                    CommunityItemView(CommunityItems[index], navController, userViewModel)
+            // Display Loading or Communities
+            if (isLoading) {
+                Text(
+                    text = "Loading communities...",
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            } else if (communities.isEmpty()) {
+                Text(
+                    text = "No communities found.",
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(1),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(communities.distinctBy { it.id }) { community ->
+                        CommunityItemView(
+                            CommunityItem(
+                                date = community.name,
+                                imageRes = community.communityImage,
+                                communityId = community.id
+                            ),
+                            navController,
+                            userViewModel
+                        )
+                    }
                 }
             }
         }
@@ -264,7 +266,7 @@ fun CommunityItemView(item: CommunityItem, navController: NavController, userVie
                 onClick = {
 
                     userViewModel.joinUserCommunity(item.communityId)
-                    navController.navigate("CommunityPosts/${item.communityId}")
+                    navController.navigate("viewCommunity/${item.communityId}")
 
                           },
                 modifier = Modifier.align(Alignment.CenterVertically),
@@ -274,7 +276,7 @@ fun CommunityItemView(item: CommunityItem, navController: NavController, userVie
                 )
             ) {
                 Text(
-                    "Join",
+                    "View",
                     color = Color.White
                 )
             }

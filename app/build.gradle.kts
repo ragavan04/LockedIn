@@ -71,6 +71,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation ("com.google.firebase:firebase-firestore-ktx")
+    implementation ("com.google.accompanist:accompanist-permissions:0.36.0")
+
 
 
     implementation("androidx.compose.material:material:1.7.4")
