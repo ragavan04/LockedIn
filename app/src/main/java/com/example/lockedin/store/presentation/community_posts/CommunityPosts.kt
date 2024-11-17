@@ -1,5 +1,6 @@
 package com.example.lockedin.store.presentation.community_posts
-
+import androidx.compose.runtime.remember
+import com.google.accompanist.permissions.*
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.text.format.DateUtils
@@ -79,43 +80,40 @@ fun CommunityPosts(modifier: Modifier = Modifier, navController: NavController, 
     }
 }
 
-
-
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CommunityHeader(
     community: Community, navController: NavController, communityId: String
 ) {
+
+    val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 25.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Row for back button, title, and action buttons
-        Row(
+        // Box for back button, title, and action buttons
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            contentAlignment = Alignment.Center
         ) {
-            // Back IconButton
+            // Back IconButton aligned to the start
             IconButton(
-                onClick = {navController.navigate("community_screen")},
-                modifier = Modifier.size(36.dp)
+                onClick = { navController.navigate("community_screen") },
+                modifier = Modifier.align(Alignment.CenterStart).size(36.dp)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_back),
                     contentDescription = "Back",
                     modifier = Modifier.size(24.dp)
-
                 )
             }
 
-            // Spacer to push the title to the center
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Title
+            // Title centered
             Text(
                 text = community.name,
                 fontSize = 24.sp,
@@ -124,34 +122,58 @@ fun CommunityHeader(
                 textAlign = TextAlign.Center
             )
 
-            // Statistics IconButton
-            IconButton(
-                onClick = { /* Leave blank for navigation */ },
-                modifier = Modifier.size(36.dp)
+            // Row for right-aligned buttons (Progress and Create Post)
+            Row(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_progress),
-                    contentDescription = "Progress",
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+                // Statistics IconButton
+                IconButton(
+                    onClick = { /* Leave blank for navigation */ },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_progress),
+                        contentDescription = "Progress",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
 
-            Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
 
-            // Create Post IconButton
-            IconButton(
-                onClick = {navController.navigate("UploadPost/$communityId")},
-                modifier = Modifier.size(36.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_newpost),
-                    contentDescription = "Create Post",
-                    modifier = Modifier.size(24.dp)
-                )
+                // Create Post IconButton
+                IconButton(
+                    onClick = {
+                        if (cameraPermissionState.status.isGranted) {
+                            navController.navigate("UploadPost/$communityId")
+                        } else {
+                            cameraPermissionState.launchPermissionRequest()
+                        }
+                              },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_newpost),
+                        contentDescription = "Create Post",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(5.dp))
+
+        // Show feedback if the permission is denied and rationale should be shown
+        if (cameraPermissionState.status.shouldShowRationale) {
+            Text(
+                text = "Camera permission is required to create a post. Please grant the permission.",
+                color = Color.Red,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            )
+        }
 
         // Community Description
         Text(
@@ -169,9 +191,9 @@ fun CommunityHeader(
             thickness = 4.dp,
             modifier = Modifier.fillMaxWidth()
         )
-
     }
 }
+
 
 @Composable
 fun PostItem(post: Post) {

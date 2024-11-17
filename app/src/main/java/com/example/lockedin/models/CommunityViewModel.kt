@@ -28,6 +28,8 @@ class CommunityViewModel : ViewModel() {
 
     val currentCommunity = mutableStateOf<Community?>(null)
 
+    val isLoading = mutableStateOf(false)
+
 
     // LOGIC FOR PUSHING DATA TO DB
     fun createCommunity(name: String, description: String, communityPicture: String, userViewModel: UserViewModel) {
@@ -98,44 +100,30 @@ class CommunityViewModel : ViewModel() {
 
     fun fetchCommunities() {
         viewModelScope.launch {
-            try{
-                val db = FirebaseFirestore.getInstance()
-                println("Attempting to fetch communities...")
+            isLoading.value = true
+            try {
                 val communitySnapshot = db.collection("communities").get().await()
-                println("Communities fetched: ${communitySnapshot.documents.size}")
 
-                communityList.clear()
-
+                val fetchedCommunities = mutableListOf<Community>()
                 for (communityDoc in communitySnapshot.documents) {
                     val community = communityDoc.toObject(Community::class.java)
                     if (community != null) {
                         community.id = communityDoc.id
-
-                        println("Community found: ${community.name}")
-
-                        // Fetch members for each community
-                        val membersSnapshot = communityDoc.reference.collection("members").get().await()
-                        val members = membersSnapshot.toObjects(Member::class.java)
-                        println("Members found: ${members.size}")
-
-                        // Fetch posts for each community
-                        val postsSnapshot = communityDoc.reference.collection("posts").get().await()
-                        val posts = postsSnapshot.toObjects(Post::class.java)
-                        println("Posts found: ${posts.size}")
-
-                        // Assign the subcollection data
-                        community.memberId = members
-                        community.posts = posts
-
-                        communityList.add(community)
+                        fetchedCommunities.add(community)
                     }
                 }
-            } catch (e: Exception){
+
+                communityList.clear()
+                communityList.addAll(fetchedCommunities.distinctBy { it.id })
+
+            } catch (e: Exception) {
                 println("Error fetching communities: ${e.message}")
+            } finally {
+                isLoading.value = false
             }
         }
-
     }
+
 
     // Function to fetch posts for a specific community by ID
     fun fetchPostsForCommunity(communityId: String) {

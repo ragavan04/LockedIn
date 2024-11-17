@@ -75,8 +75,16 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
+<<<<<<< app/build.gradle.kts
+    implementation ("com.google.firebase:firebase-firestore-ktx")
+    implementation ("com.google.accompanist:accompanist-permissions:0.36.0")
+    implementation("com.google.firebase:firebase-storage")
+
+
+=======
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage")
+>>>>>>> app/build.gradle.kts
 
     // Jetpack Compose 
     implementation("androidx.compose.material:material:1.7.4")
