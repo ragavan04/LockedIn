@@ -1,14 +1,22 @@
 package com.example.lockedin.models
 
+import android.content.ContentResolver
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 import com.google.firebase.auth.userProfileChangeRequest
+import com.google.firebase.storage.storage
+import java.io.ByteArrayOutputStream
+import java.io.FileNotFoundException
+import java.io.InputStream
+import java.util.*
 
 
 class AuthViewModel : ViewModel(){
@@ -43,7 +51,10 @@ class AuthViewModel : ViewModel(){
 
     fun signup(email: String, password: String, username: String, profilePicUrl: String, userViewModel: UserViewModel){
         Log.d("username", username)
-        Log.d("profilepic", profilePicUrl)
+        val storage = Firebase.storage
+        val storageRef = storage.reference
+        val uniqueID = UUID.randomUUID().toString()
+        val imagesRef = storageRef.child("images/${uniqueID}.jpg")
 
 
         if (email.isEmpty() || password.isEmpty()){
@@ -54,6 +65,7 @@ class AuthViewModel : ViewModel(){
             .addOnCompleteListener{ task ->
                 if (task.isSuccessful){
                     _authState.value = AuthState.Authenticated
+
 
                     val profileUpdates = userProfileChangeRequest {
                         displayName = username
