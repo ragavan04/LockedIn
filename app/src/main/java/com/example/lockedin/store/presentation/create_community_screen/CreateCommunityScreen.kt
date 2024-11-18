@@ -42,6 +42,8 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
     var communityName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var communityPicture by remember { mutableStateOf("") }
+    var maxDescriptionLength = 100
+
 
     val authState = authViewModel.authState.observeAsState()
     LaunchedEffect(authState.value) {
@@ -107,7 +109,11 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
 
                 TextField(
                     value = description,
-                    onValueChange = { description = it },
+                    onValueChange = { 
+                        if (it.length <= maxDescriptionLength) {
+                            description = it 
+                        }
+                    },
                     label = { Text("Description") } ,
                     modifier = Modifier
                         .width(370.dp)

@@ -19,15 +19,16 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
-        BottomNavItem("Community", "community_screen", Icons.Default.Home),
+        BottomNavItem("Dashboard", "dashboard", Icons.Default.Home),
+//        BottomNavItem("Community", "community_screen", Icons.Default.Home),
         BottomNavItem("Progress", "my_progress_screen", Icons.Default.Star),
         BottomNavItem("Profile", "profile_screen", Icons.Default.Person),
 //        BottomNavItem("Search", "search_screen", Icons.Default.Search),
     )
 
     BottomNavigation(
-        backgroundColor = Color.White,
-        contentColor = Color.Black
+        backgroundColor = Color.Black,
+        contentColor = Color.White
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
@@ -38,13 +39,16 @@ fun BottomNavigationBar(navController: NavController) {
                 selected = currentRoute == item.route,
                 onClick = {
                     navController.navigate(item.route) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo(navController.graph.startDestinationId) { 
+                            inclusive = true
+                            saveState = true 
+                        }
                         launchSingleTop = true
                         restoreState = true
                     }
                 },
                 alwaysShowLabel = false,
-                selectedContentColor = Color.Black,
+                selectedContentColor = Color.LightGray,
                 unselectedContentColor = Color.Gray
             )
         }
