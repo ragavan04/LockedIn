@@ -27,15 +27,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.lockedin.R
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import com.example.lockedin.models.*
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URL
@@ -74,7 +73,7 @@ fun CommunityPosts(modifier: Modifier = Modifier, navController: NavController, 
             modifier = Modifier.padding(top = 16.dp)
         ) {
             items(communityPosts.size) { index ->
-                PostItem(post = communityPosts[index])
+                PostItem(post = communityPosts[index], communityId, communityViewModel)
             }
         }
     }
@@ -196,14 +195,26 @@ fun CommunityHeader(
 
 
 @Composable
-fun PostItem(post: Post) {
+fun PostItem(post: Post, communityId: String, communityViewModel: CommunityViewModel) {
     var postImage by remember { mutableStateOf<ImageBitmap?>(null) }
     var profileImage by remember { mutableStateOf<ImageBitmap?>(null) }
+    var voting by remember { mutableStateOf(0) }
+
 
     // Load the post image in the background
     LaunchedEffect(post.imageURL) {
         postImage = loadImageFromUrl(post.imageURL)
     }
+
+    // Fetch the latest points from Firestore when the post is displayed
+    LaunchedEffect(post.postId) {
+        communityViewModel.fetchPostPoints(communityId, post.postId) { updatedPoints ->
+            if (updatedPoints != null) {
+                voting = updatedPoints
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -244,7 +255,7 @@ fun PostItem(post: Post) {
             // User info and timestamp
             Column {
                 Text(
-                    text = post.userId, // Display the user's name
+                    text = post.username, // Display the user's name
                     fontSize = 16.sp,
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold
@@ -258,27 +269,98 @@ fun PostItem(post: Post) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Action icons (like, comment, share)
-            Icon(
-                imageVector = Icons.Filled.Favorite,
-                contentDescription = "Like",
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Icon(
-                imageVector = Icons.Filled.Create,
-                contentDescription = "Comment",
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Icon(
-                imageVector = Icons.Filled.Share,
-                contentDescription = "Share",
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                IconButton(
+                    onClick = {
+                        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@IconButton
+                        communityViewModel.userCanVote(
+                            communityId = communityId,
+                            postId = post.postId,
+                            userId = userId
+                        ) { canVote ->
+                            if (canVote) {
+                                val newPoints = voting + 1
+                                communityViewModel.updatePoints(
+                                    communityId = communityId,
+                                    postId = post.postId,
+                                    newPoints = newPoints,
+                                    onSuccess = {
+                                        voting = newPoints
+                                        communityViewModel.recordVote(
+                                            communityId = communityId,
+                                            postId = post.postId,
+                                            userId = userId,
+                                            onSuccess = { println("Vote recorded") },
+                                            onFailure = { exception -> println("Error recording vote: ${exception.message}") }
+                                        )
+                                    },
+                                    onFailure = { exception -> println("Error updating points: ${exception.message}") }
+                                )
+                            } else {
+                                println("User has already voted on this post")
+                            }
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowUp,
+                        contentDescription = "Upvote",
+                        tint = Color.White
+                    )
+                }
+
+
+                // Display the current vote count
+                Text(
+                    text = voting.toString(),
+                    color = Color.White,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+
+                IconButton(
+                    onClick = {
+                        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@IconButton
+                        communityViewModel.userCanVote(
+                            communityId = communityId,
+                            postId = post.postId,
+                            userId = userId
+                        ) { canVote ->
+                            if (canVote) {
+                                val newPoints = voting - 1
+                                communityViewModel.updatePoints(
+                                    communityId = communityId,
+                                    postId = post.postId,
+                                    newPoints = newPoints,
+                                    onSuccess = {
+                                        voting = newPoints
+                                        communityViewModel.recordVote(
+                                            communityId = communityId,
+                                            postId = post.postId,
+                                            userId = userId,
+                                            onSuccess = { println("Vote recorded") },
+                                            onFailure = { exception -> println("Error recording vote: ${exception.message}") }
+                                        )
+                                    },
+                                    onFailure = { exception -> println("Error updating points: ${exception.message}") }
+                                )
+                            } else {
+                                println("User has already voted on this post")
+                            }
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Upvote",
+                        tint = Color.White
+                    )
+                }
+
+            }
+
         }
     }
 

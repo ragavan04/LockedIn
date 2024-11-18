@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
+import com.example.lockedin.models.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
@@ -39,7 +40,7 @@ fun UploadPost(
     modifier: Modifier = Modifier,
     navController: NavController,
     authViewModel: AuthViewModel,
-    communityViewModel: CommunityViewModel = viewModel(),
+    userViewModel: UserViewModel = viewModel(),
     communityId: String
 ) {
     val authState = authViewModel.authState.observeAsState()
@@ -86,7 +87,7 @@ fun UploadPost(
             // Upload Button
             Button(
                 onClick = {
-                    uploadImageToFirebaseStorage(image, communityId) { success ->
+                    uploadImageToFirebaseStorage(image, communityId, userViewModel) { success ->
                         if (success) {
                             showSuccessMessage = true
                             // Show success message and navigate
@@ -137,6 +138,7 @@ fun CameraCapture(onImageCaptured: (Bitmap?) -> Unit) {
 fun uploadImageToFirebaseStorage(
     bitmap: Bitmap,
     communityId: String,
+    userViewModel: UserViewModel,
     onComplete: (Boolean) -> Unit
 ) {
     val storage = Firebase.storage
@@ -153,7 +155,7 @@ fun uploadImageToFirebaseStorage(
         .addOnSuccessListener {
             imagesRef.downloadUrl.addOnSuccessListener { uri ->
                 val imageUrl = uri.toString()
-                saveImageUrlToCommunityPosts(imageUrl, communityId, onComplete)
+                saveImageUrlToCommunityPosts(imageUrl, communityId, onComplete, userViewModel)
             }
         }
         .addOnFailureListener {
@@ -166,25 +168,31 @@ fun uploadImageToFirebaseStorage(
 fun saveImageUrlToCommunityPosts(
     imageURL: String,
     communityId: String,
-    onComplete: (Boolean) -> Unit
+    onComplete: (Boolean) -> Unit,
+    userViewModel: UserViewModel
 ) {
     val currentUser = FirebaseAuth.getInstance().currentUser
     val userId = currentUser?.uid ?: return
 
-    val post = hashMapOf(
-        "imageURL" to imageURL,
-        "timePosted" to System.currentTimeMillis(),
-        "userId" to userId
-    )
+    // Fetch the username using the userViewModel instance
+    userViewModel.fetchUsernameByUserId(userId) { userName ->
+        val post = hashMapOf(
+            "imageURL" to imageURL,
+            "timePosted" to System.currentTimeMillis(),
+            "userId" to userId,
+            "username" to userName,
+        )
 
-    db.collection("communities")
-        .document(communityId)
-        .collection("posts")
-        .add(post)
-        .addOnSuccessListener {
-            onComplete(true)
-        }
-        .addOnFailureListener {
-            onComplete(false)
-        }
+        db.collection("communities")
+            .document(communityId)
+            .collection("posts")
+            .add(post)
+            .addOnSuccessListener {
+                onComplete(true)
+            }
+            .addOnFailureListener {
+                onComplete(false)
+            }
+    }
 }
+

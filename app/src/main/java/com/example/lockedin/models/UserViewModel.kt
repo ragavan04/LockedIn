@@ -1,8 +1,6 @@
 package com.example.lockedin.models
 
 import androidx.compose.runtime.mutableStateListOf
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,9 +10,6 @@ import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 
 class UserViewModel : ViewModel() {
 
@@ -31,9 +26,6 @@ class UserViewModel : ViewModel() {
     val userList = mutableStateListOf<User>()
 
     // List to hold posts for a specific community
-
-    private val _userCommunities = MutableLiveData<List<Community>>()
-    val userCommunities: LiveData<List<Community>> = _userCommunities
 
 
     val currentUserCommunity = mutableStateOf<UserCommunity?>(null)
@@ -141,33 +133,21 @@ class UserViewModel : ViewModel() {
         }
     }
 
-    fun fetchUserCommunities() {
-        val userId = Firebase.auth.currentUser?.uid
-        if (userId != null) {
-            Firebase.firestore.collection("users")
-                .document(userId)
-                .collection("communities")
-                .get()
-                .addOnSuccessListener { documents ->
-                    val communityIds = documents.map { it.id }
-                    fetchCommunityDetails(communityIds)
+    fun fetchUsernameByUserId(userId: String, onResult: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val document = db.collection("users").document(userId).get().await()
+                if (document.exists()) {
+                    val username = document.getString("username")
+                    onResult(username) // Return the username
+                } else {
+                    onResult(null) // User does not exist
                 }
+            } catch (e: Exception) {
+                println("Error fetching username: ${e.message}")
+                onResult(null) // Error occurred
+            }
         }
     }
 
-    private fun fetchCommunityDetails(communityIds: List<String>) {
-        val communities = mutableListOf<Community>()
-        for (id in communityIds) {
-            Firebase.firestore.collection("communities")
-                .document(id)
-                .get()
-                .addOnSuccessListener { document ->
-                    val community = document.toObject(Community::class.java)
-                    if (community != null) {
-                        communities.add(community)
-                    }
-                    _userCommunities.value = communities
-                }
-        }
-    }
 }
