@@ -54,6 +54,7 @@ import com.example.lockedin.models.UserViewModel
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -89,34 +90,29 @@ fun CommunityFeed(
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate("CreateCommunityScreen") },
+                backgroundColor = Color(0xFF007BFF),
+                contentColor = Color.White
+            ) {
+                Text(
+                    text = "+",
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+            }
+        },
         modifier = Modifier.background(Color.Black)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(28.dp)
+                .padding(16.dp)
         ) {
-
-            // Create Community Button
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Button(
-                    onClick = {
-                        navController.navigate("CreateCommunityScreen")
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
-                    ),
-                    shape = CircleShape,
-                    modifier = Modifier.size(45.dp)
-                ) {
-                    Text(text = "+", fontSize = 25.sp)
-                }
-            }
 
             // Page Title
             Text(
@@ -138,10 +134,12 @@ fun CommunityFeed(
                 textAlign = TextAlign.Left
             )
 
+
             // Search Bar
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 var searchQuery by remember { mutableStateOf("") }
@@ -149,10 +147,14 @@ fun CommunityFeed(
                 TextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search for communities...", color = Color.Gray) },
+                    placeholder = {
+                        Text("Search for communities...", color = Color.Gray)
+                    },
                     modifier = Modifier
-                        .height(56.dp)
-                        .padding(horizontal = 16.dp),
+                        .weight(1f)
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFF333333)),
                     colors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color(0xFF333333),
                         focusedContainerColor = Color(0xFF333333),
@@ -169,6 +171,8 @@ fun CommunityFeed(
                     )
                 )
 
+                Spacer(modifier = Modifier.width(8.dp))
+
                 IconButton(
                     onClick = {
                         if (searchQuery.isEmpty()) {
@@ -176,8 +180,7 @@ fun CommunityFeed(
                         } else {
                             communityViewModel.searchCommunities(searchQuery)
                         }
-                    },
-                    modifier = Modifier.padding(start = 8.dp)
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Search,
@@ -187,7 +190,7 @@ fun CommunityFeed(
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Display Loading or Communities
             if (isLoading) {
@@ -210,9 +213,10 @@ fun CommunityFeed(
                     items(communities.distinctBy { it.id }) { community ->
                         CommunityItemView(
                             CommunityItem(
-                                date = community.name,
+                                name = community.name,
                                 imageRes = community.communityImage,
-                                communityId = community.id
+                                communityId = community.id,
+                                description = community.description,
                             ),
                             navController,
                             userViewModel
@@ -226,62 +230,73 @@ fun CommunityFeed(
 
 @Composable
 fun CommunityItemView(item: CommunityItem, navController: NavController, userViewModel: UserViewModel) {
-    Column(
+    Row(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF1E90FF)),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(Color(0xFF1E1E1E)) // Dark background
+            .padding(16.dp), // Inner padding for content
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        // Community Image
         Image(
-            painter = painterResource(R.drawable.samplecommunity2),
+            painter = painterResource(R.drawable.samplecommunity2), // Replace with dynamic image loading
             contentDescription = null,
             modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(2f)
-                .clip(RoundedCornerShape(16.dp)),
+                .size(64.dp) // Circular image
+                .clip(CircleShape),
             contentScale = ContentScale.Crop
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.width(16.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        // Community Name, Description, and View Button
+        Column(
+            modifier = Modifier.weight(1f) // Occupy remaining width
         ) {
-            Text(
-                text = item.date,
-                fontSize = 18.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
-
-            Button(
-                onClick = {
-
-                    userViewModel.joinUserCommunity(item.communityId)
-                    navController.navigate("viewCommunity/${item.communityId}")
-
-                          },
-                modifier = Modifier.align(Alignment.CenterVertically),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black,
-                    contentColor = Color.White
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "View",
-                    color = Color.White
+                    text = item.name, // Community Name
+                    fontSize = 18.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f) // Allow space for the button
                 )
+
+                // Small View Button
+                Button(
+                    onClick = {
+                        userViewModel.joinUserCommunity(item.communityId)
+                        navController.navigate("viewCommunity/${item.communityId}")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF007BFF), // Button color
+                        contentColor = Color.White
+                    ),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp), // Smaller button padding
+                    modifier = Modifier
+                        .height(30.dp) // Smaller height for the button
+                        .clip(RoundedCornerShape(8.dp)) // Rounded edges
+                ) {
+                    Text("View", fontSize = 12.sp) // Smaller font size
+                }
             }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Community Description
+            Text(
+                text = item.description, // Replace with actual description
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
         }
     }
 }
 
-data class CommunityItem(val date: String, val imageRes: String, val communityId: String)
+
+data class CommunityItem(val name: String, val imageRes: String, val communityId: String, val description: String)
