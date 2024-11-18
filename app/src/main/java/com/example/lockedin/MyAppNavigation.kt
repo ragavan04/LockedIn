@@ -59,7 +59,7 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
             composable("UploadPost/{communityId}"){ backStackEntry ->
                 val communityId = backStackEntry.arguments?.getString("communityId")
                 if (communityId != null) {
-                    UploadPost(modifier, navController, authViewModel, communityViewModel, communityId = communityId)
+                    UploadPost(modifier, navController, authViewModel, userViewModel, communityId = communityId)
                 }
             }
             composable("viewCommunity/{communityId}"){ backStackEntry ->

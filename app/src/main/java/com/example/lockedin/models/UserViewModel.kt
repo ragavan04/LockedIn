@@ -132,4 +132,22 @@ class UserViewModel : ViewModel() {
             }
         }
     }
+
+    fun fetchUsernameByUserId(userId: String, onResult: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val document = db.collection("users").document(userId).get().await()
+                if (document.exists()) {
+                    val username = document.getString("username")
+                    onResult(username) // Return the username
+                } else {
+                    onResult(null) // User does not exist
+                }
+            } catch (e: Exception) {
+                println("Error fetching username: ${e.message}")
+                onResult(null) // Error occurred
+            }
+        }
+    }
+
 }

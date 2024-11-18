@@ -127,29 +127,24 @@ class CommunityViewModel : ViewModel() {
 
     // Function to fetch posts for a specific community by ID
     fun fetchPostsForCommunity(communityId: String) {
-        viewModelScope.launch {
-            try {
-                // Clear previous posts
+        db.collection("communities")
+            .document(communityId)
+            .collection("posts")
+            .get()
+            .addOnSuccessListener { snapshot ->
                 postsForCommunity.clear()
-
-                // Fetch posts for the specific community
-                val postsSnapshot = db.collection("communities")
-                    .document(communityId)
-                    .collection("posts")
-                    .get()
-                    .await()
-
-                // Convert and add posts to the list
-                val posts = postsSnapshot.toObjects(Post::class.java)
-                postsForCommunity.addAll(posts)
-
-                println("Posts fetched for community ID $communityId: ${posts.size}")
-
-            } catch (e: Exception) {
-                println("Error fetching posts for community ID $communityId: ${e.message}")
+                for (document in snapshot.documents) {
+                    val post = document.toObject(Post::class.java)?.copy(postId = document.id)
+                    if (post != null) {
+                        postsForCommunity.add(post)
+                    }
+                }
             }
-        }
+            .addOnFailureListener { exception ->
+                println("Error fetching posts: ${exception.message}")
+            }
     }
+
 
     fun fetchCommunityById(communityId: String) {
         viewModelScope.launch {
@@ -208,5 +203,89 @@ class CommunityViewModel : ViewModel() {
             }
         }
     }
+
+    fun fetchPostPoints(
+        communityId: String,
+        postId: String,
+        onResult: (Int?) -> Unit
+    ) {
+        db.collection("communities")
+            .document(communityId)
+            .collection("posts")
+            .document(postId)
+            .get()
+            .addOnSuccessListener { document ->
+                val points = document.getLong("points")?.toInt()
+                onResult(points)
+            }
+            .addOnFailureListener { exception ->
+                println("Error fetching points: ${exception.message}")
+                onResult(null)
+            }
+    }
+
+    fun updatePoints(
+        communityId: String,
+        postId: String,
+        newPoints: Int,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("communities")
+            .document(communityId)
+            .collection("posts")
+            .document(postId) // Use the unique Firestore-generated postId
+            .update("points", newPoints)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
+
+    fun userCanVote(
+        communityId: String,
+        postId: String,
+        userId: String,
+        onResult: (Boolean) -> Unit
+    ) {
+        db.collection("communities")
+            .document(communityId)
+            .collection("posts")
+            .document(postId)
+            .collection("voters")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                onResult(!document.exists()) // User can vote if no record exists
+            }
+            .addOnFailureListener { exception ->
+                println("Error checking voter status: ${exception.message}")
+                onResult(false) // Default to not allowing a vote on error
+            }
+    }
+
+    fun recordVote(
+        communityId: String,
+        postId: String,
+        userId: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val voterData = hashMapOf("votedAt" to System.currentTimeMillis())
+
+        db.collection("communities")
+            .document(communityId)
+            .collection("posts")
+            .document(postId)
+            .collection("voters")
+            .document(userId)
+            .set(voterData)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { exception -> onFailure(exception) }
+    }
+
+
 
 }
