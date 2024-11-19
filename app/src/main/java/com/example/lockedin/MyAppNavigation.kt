@@ -29,7 +29,7 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
     val navController = rememberNavController()
     Scaffold(
     ) {
-        NavHost(navController, startDestination = "dashboard", builder = {
+        NavHost(navController, startDestination = "login", builder = {
             composable("login") {
                 LoginScreen(modifier, navController, authViewModel)
             }
