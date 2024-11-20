@@ -34,6 +34,10 @@ import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
 import com.example.lockedin.models.UserViewModel
+import android.app.TimePickerDialog
+import android.widget.Toast
+import androidx.compose.runtime.rememberCoroutineScope
+import java.util.Calendar
 
 
 @Composable
@@ -42,10 +46,13 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
     var communityName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var communityPicture by remember { mutableStateOf("") }
+    var notificationTime by remember { mutableStateOf("") }
     var maxDescriptionLength = 100
 
 
     val authState = authViewModel.authState.observeAsState()
+    val coroutineScope = rememberCoroutineScope()
+
     LaunchedEffect(authState.value) {
         when(authState.value){
             is AuthState.Unauthenticated -> navController.navigate("login")
@@ -117,7 +124,7 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
                     label = { Text("Description") } ,
                     modifier = Modifier
                         .width(370.dp)
-                        .height(180.dp)
+                        .height(80.dp)
                         .clip(RoundedCornerShape(12.dp)) // Rounded corners
                         .background(Color(0xFFFFFFFF)), // Darker TextField background
                     colors = TextFieldDefaults.textFieldColors(
@@ -151,10 +158,47 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
                     )
                 )
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Time Picker Section
+                Button(
+                    onClick = {
+                        val calendar = Calendar.getInstance()
+                        TimePickerDialog(
+                            navController.context,
+                            { _, hourOfDay, minute ->
+                                notificationTime = String.format("%02d:%02d", hourOfDay, minute)
+                                Toast.makeText(
+                                    navController.context,
+                                    "Notification Time Set: $notificationTime",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            true
+                        ).show()
+                    },
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(30.dp)),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.White,
+                        contentColor = Color(0xFF333333),
+                    )
+                ) {
+                    Text(
+                        text = if (notificationTime.isEmpty()) "Set Notification Time" else "Time: $notificationTime",
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
 
                 Button(onClick = {
-                    communityViewModel.createCommunity(communityName, description, communityPicture, userViewModel)
+                    communityViewModel.createCommunity(communityName, description, communityPicture, notificationTime, userViewModel)
                     navController.navigate("community_screen")
 
                 },

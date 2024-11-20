@@ -5,12 +5,15 @@ import android.os.Looper
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role.Companion.Button
@@ -26,15 +29,16 @@ import com.example.lockedin.store.presentation.community_posts.CommunityHeader
 
 
 @Composable
-fun viewCommunity(modifier: Modifier = Modifier,
-                   navController: NavController,
-                   authViewModel: AuthViewModel,
-                   communityViewModel: CommunityViewModel,
-                   communityId: String,
+fun viewCommunity(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    authViewModel: AuthViewModel,
+    communityViewModel: CommunityViewModel,
+    communityId: String,
 ) {
     val authState = authViewModel.authState.observeAsState()
     LaunchedEffect(authState.value) {
-        when(authState.value){
+        when (authState.value) {
             is AuthState.Unauthenticated -> navController.navigate("login")
             else -> Unit
         }
@@ -45,11 +49,12 @@ fun viewCommunity(modifier: Modifier = Modifier,
 
     Scaffold(
         modifier = Modifier.background(Color(0xFF333333))
-    ){
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF131313))
+                .background(Color(0xFF131313)),
+            horizontalAlignment = Alignment.CenterHorizontally // Center children horizontally
         ) {
             community?.let {
                 communityHeader(community, navController, communityId)
@@ -57,10 +62,40 @@ fun viewCommunity(modifier: Modifier = Modifier,
 
             Spacer(Modifier.height(50.dp))
 
+            // Notification Time with Styled Box
+            if (community != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .wrapContentHeight()
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(Color(0xFF2C2C2C), Color(0xFF3A3A3A))
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        .padding(vertical = 16.dp)
+                        .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Notification Time: ${community.notificationTime}",
+                        fontSize = 18.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
+
             JoinCommunityButton(navController, communityId)
         }
     }
 }
+
 
 @Composable
 fun JoinCommunityButton(
