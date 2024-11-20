@@ -32,7 +32,7 @@ class CommunityViewModel : ViewModel() {
 
 
     // LOGIC FOR PUSHING DATA TO DB
-    fun createCommunity(name: String, description: String, communityPicture: String, userViewModel: UserViewModel) {
+    fun createCommunity(name: String, description: String, communityPicture: String, notificationTime: String, userViewModel: UserViewModel) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             val communityId = UUID.randomUUID().toString()  // Generate a unique community ID
@@ -46,7 +46,8 @@ class CommunityViewModel : ViewModel() {
                 "description" to description,
                 "communityImage" to communityPicture,
                 "ownerId" to currentUser.uid,  // Store the ID of the user who created the community
-                "createdAt" to System.currentTimeMillis()
+                "createdAt" to System.currentTimeMillis(),
+                "notificationTime" to notificationTime,
             )
 
             // Store the community in Firestore
@@ -54,23 +55,6 @@ class CommunityViewModel : ViewModel() {
                 .set(community, SetOptions.merge())
                 .addOnSuccessListener {
                     println("Community successfully created with ID: $communityId")
-
-                    // Create `posts` sub-collection (empty at the start)
-                    val defaultPost = hashMapOf(
-                        "userId" to currentUser.uid,
-                        "imageURL" to "deafultdummyURL",
-                        "timePosted" to System.currentTimeMillis()
-                    )
-                    db.collection("communities").document(communityId)
-                        .collection("posts").document("defaultPost")
-                        .set(defaultPost)
-                        .addOnSuccessListener {
-                            println("Default post successfully added.")
-                        }
-                        .addOnFailureListener { e ->
-                            println("Error adding default post: $e")
-                        }
-
 
                     // Add the creator to the `members` sub-collection and set them as the owner
                     val member = hashMapOf(
