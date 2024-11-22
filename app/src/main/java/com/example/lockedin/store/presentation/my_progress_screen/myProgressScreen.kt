@@ -67,6 +67,8 @@ fun MyProgressScreen(modifier: Modifier = Modifier, navController: NavController
         bottomBar = { BottomNavigationBar(navController) },
     ) {
 
+
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
