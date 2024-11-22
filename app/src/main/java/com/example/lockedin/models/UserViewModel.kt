@@ -274,6 +274,9 @@ class UserViewModel : ViewModel() {
             if (currentUser != null) {
                 val userID = currentUser.uid
 
+
+
+
                 viewModelScope.launch {
                     try {
                         println("Fetching points for community: $communityID")
