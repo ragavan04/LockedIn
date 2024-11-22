@@ -16,6 +16,7 @@ import com.example.lockedin.store.presentation.dashboard.DashboardScreen
 import com.example.lockedin.store.presentation.my_progress_screen.MyProgressScreen
 import com.example.lockedin.store.presentation.create_community_screen.CreateCommunityScreen
 import com.example.lockedin.store.presentation.login_screen.LoginScreen
+import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
 //import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
 import com.example.lockedin.store.presentation.signup_screen.SignupScreen
 import com.example.lockedin.store.presentation.upload_post.UploadPost
@@ -60,6 +61,13 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
                     CommunityPosts(modifier, navController, authViewModel, communityViewModel, communityId = communityId)
                 }
             }
+
+            composable("ProgressScreen/{communityId}"){ backStackEntry ->
+                val communityId = backStackEntry.arguments?.getString("communityId")
+                if (communityId != null) {
+                    ProgressScreen(modifier, navController, authViewModel, communityViewModel, userViewModel, communityId = communityId)
+                }
+            }
             composable("UploadPost/{communityId}"){ backStackEntry ->
                 val communityId = backStackEntry.arguments?.getString("communityId")
                 if (communityId != null) {
@@ -69,7 +77,7 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
             composable("viewCommunity/{communityId}"){ backStackEntry ->
                 val communityId = backStackEntry.arguments?.getString("communityId")
                 if (communityId != null) {
-                    viewCommunity(modifier, navController, authViewModel, communityViewModel, communityId = communityId)
+                    viewCommunity(modifier, navController, authViewModel, userViewModel, communityViewModel, communityId = communityId)
                 }
             }
         })
