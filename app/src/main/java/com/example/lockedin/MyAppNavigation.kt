@@ -80,7 +80,8 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
                     viewCommunity(modifier, navController, authViewModel, userViewModel, communityViewModel, communityId = communityId)
                 }
             }
-        })
+        }
+        )
     }
 
 }
