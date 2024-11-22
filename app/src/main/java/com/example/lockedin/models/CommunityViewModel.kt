@@ -47,6 +47,7 @@ class CommunityViewModel : ViewModel() {
                 "communityImage" to communityPicture,
                 "ownerId" to currentUser.uid,  // Store the ID of the user who created the community
                 "createdAt" to System.currentTimeMillis(),
+                "id" to communityId,
                 "notificationTime" to notificationTime,
             )
 
@@ -141,6 +142,21 @@ class CommunityViewModel : ViewModel() {
             }
         }
     }
+
+    fun fetchCommunityNameById(communityId: String, onResult: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val document = db.collection("communities").document(communityId).get().await()
+                val community = document.toObject(Community::class.java)
+                onResult(community?.name)
+            } catch (e: Exception) {
+                println("Error fetching community name: ${e.message}")
+                onResult(null)
+            }
+        }
+    }
+
+
 
     // function to search communities by name or description    
     fun searchCommunities(query: String) {

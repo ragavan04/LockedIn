@@ -29,6 +29,7 @@ import com.example.lockedin.models.CommunityViewModel
 import com.example.lockedin.models.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import java.io.ByteArrayOutputStream
@@ -183,10 +184,27 @@ fun saveImageUrlToCommunityPosts(
             "username" to userName,
         )
 
+        val postID = UUID.randomUUID().toString()
+
         db.collection("communities")
             .document(communityId)
             .collection("posts")
-            .add(post)
+            .document(postID)
+            .set(post, SetOptions.merge())
+            .addOnSuccessListener {
+                onComplete(true)
+            }
+            .addOnFailureListener {
+                onComplete(false)
+            }
+
+        db.collection("users")
+            .document(userId)
+            .collection("communities")
+            .document(communityId)
+            .collection("posts")
+            .document(postID)
+            .set(post, SetOptions.merge())
             .addOnSuccessListener {
                 onComplete(true)
             }
@@ -195,4 +213,3 @@ fun saveImageUrlToCommunityPosts(
             }
     }
 }
-
