@@ -62,7 +62,7 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
         when(authState.value){
             is AuthState.Authenticated -> {
                 userViewModel.createUser(username)
-                navController.navigate("community_screen")
+                navController.navigate("dashboard")
             }
             is AuthState.Error -> Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
             else -> Unit
