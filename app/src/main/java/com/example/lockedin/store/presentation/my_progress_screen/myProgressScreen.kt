@@ -75,6 +75,8 @@ fun MyProgressScreen(modifier: Modifier = Modifier, navController: NavController
         bottomBar = { BottomNavigationBar(navController) },
     ) { innerPadding ->
 
+
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
