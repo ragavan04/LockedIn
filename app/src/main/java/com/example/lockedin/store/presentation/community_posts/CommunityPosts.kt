@@ -354,7 +354,7 @@ fun PostItem(post: Post, communityId: String, communityViewModel: CommunityViewM
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Upvote",
+                        contentDescription = "Downvote",
                         tint = Color.White
                     )
                 }

@@ -39,6 +39,7 @@ class CommunityViewModel : ViewModel() {
 
 
             userViewModel.joinUserCommunity(communityId)
+            //userViewModel.updatePoints(communityId,0)
 
             // Create a community object to store in Firestore
             val community = hashMapOf(
@@ -48,6 +49,7 @@ class CommunityViewModel : ViewModel() {
                 "ownerId" to currentUser.uid,  // Store the ID of the user who created the community
                 "createdAt" to System.currentTimeMillis(),
                 "notificationTime" to notificationTime,
+                "id" to communityId
             )
 
             // Store the community in Firestore
@@ -138,6 +140,19 @@ class CommunityViewModel : ViewModel() {
                 currentCommunity.value = community
             } catch (e: Exception) {
                 println("Error fetching community: ${e.message}")
+            }
+        }
+    }
+
+    fun fetchCommunityNameById(communityId: String, onResult: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val document = db.collection("communities").document(communityId).get().await()
+                val community = document.toObject(Community::class.java)
+                onResult(community?.name)
+            } catch (e: Exception) {
+                println("Error fetching community name: ${e.message}")
+                onResult(null)
             }
         }
     }
