@@ -41,6 +41,7 @@ import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.Community
 import com.example.lockedin.models.CommunityViewModel
+import com.example.lockedin.store.presentation.progress_screen.ProgressItem
 import com.example.lockedin.store.presentation.progress_screen.ProgressItemView
 import com.example.lockedin.store.presentation.util.components.LoadingDialog
 import org.checkerframework.common.subtyping.qual.Bottom
@@ -105,12 +106,11 @@ fun CommunityFeed(
             }
         },
         modifier = Modifier.background(Color.Black)
-    ) { innerPadding ->
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(innerPadding)
                 .padding(16.dp)
         ) {
 
@@ -270,6 +270,7 @@ fun CommunityItemView(item: CommunityItem, navController: NavController, userVie
                 // Small View Button
                 Button(
                     onClick = {
+                        userViewModel.joinUserCommunity(item.communityId)
                         navController.navigate("viewCommunity/${item.communityId}")
                     },
                     colors = ButtonDefaults.buttonColors(

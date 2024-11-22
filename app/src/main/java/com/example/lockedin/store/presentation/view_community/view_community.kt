@@ -33,7 +33,6 @@ fun viewCommunity(
     modifier: Modifier = Modifier,
     navController: NavController,
     authViewModel: AuthViewModel,
-    userViewModel: UserViewModel,
     communityViewModel: CommunityViewModel,
     communityId: String,
 ) {
@@ -92,7 +91,7 @@ fun viewCommunity(
 
             Spacer(Modifier.height(20.dp))
 
-            JoinCommunityButton(navController, userViewModel, communityId)
+            JoinCommunityButton(navController, communityId)
         }
     }
 }
@@ -101,7 +100,6 @@ fun viewCommunity(
 @Composable
 fun JoinCommunityButton(
     navController: NavController,
-    userViewModel: UserViewModel,
     communityId: String
 ) {
     var isJoined by remember { mutableStateOf(false) }
@@ -114,7 +112,6 @@ fun JoinCommunityButton(
     ) {
         Button(
             onClick = {
-                userViewModel.joinUserCommunity(communityId)
                 isJoined = true
                 Handler(Looper.getMainLooper()).postDelayed({
                     navController.navigate("CommunityPosts/$communityId")

@@ -30,7 +30,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, aut
 
     LaunchedEffect(authState.value) {
         when(authState.value){
-            is AuthState.Authenticated -> navController.navigate("dashboard")
+            is AuthState.Authenticated -> navController.navigate("community_screen")
             is AuthState.Error -> Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
             else -> Unit
         }
