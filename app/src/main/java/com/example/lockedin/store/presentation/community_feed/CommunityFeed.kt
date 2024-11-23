@@ -63,6 +63,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun CommunityFeed(
@@ -84,7 +85,10 @@ fun CommunityFeed(
     }
 
     LaunchedEffect(Unit) {
-        communityViewModel.fetchCommunities()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            communityViewModel.fetchCommunitiesForDiscover(userId)
+        }
     }
 
     Scaffold(
@@ -176,7 +180,10 @@ fun CommunityFeed(
                 IconButton(
                     onClick = {
                         if (searchQuery.isEmpty()) {
-                            communityViewModel.fetchCommunities()
+                            val userId = FirebaseAuth.getInstance().currentUser?.uid
+                            if (userId != null) {
+                                communityViewModel.fetchCommunitiesForDiscover(userId)
+                            }
                         } else {
                             communityViewModel.searchCommunities(searchQuery)
                         }
