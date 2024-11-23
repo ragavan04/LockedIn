@@ -108,6 +108,43 @@ class CommunityViewModel : ViewModel() {
         }
     }
 
+    fun fetchCommunitiesForDiscover(userId: String) {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                // Fetch the communities the user is already a part of
+                val userCommunitiesSnapshot = db.collection("users")
+                    .document(userId)
+                    .collection("communities")
+                    .get()
+                    .await()
+
+                val userCommunityIds = userCommunitiesSnapshot.documents.map { it.id }
+
+                // Fetch all communities
+                val communitySnapshot = db.collection("communities").get().await()
+
+                val fetchedCommunitiesForDiscover = mutableListOf<Community>()
+                for (communityDoc in communitySnapshot.documents) {
+                    val community = communityDoc.toObject(Community::class.java)
+                    if (community != null && communityDoc.id !in userCommunityIds) {
+                        community.id = communityDoc.id
+                        fetchedCommunitiesForDiscover.add(community)
+                    }
+                }
+
+                // Update the community list with communities the user is not in
+                communityList.clear()
+                communityList.addAll(fetchedCommunitiesForDiscover.distinctBy { it.id })
+
+            } catch (e: Exception) {
+                println("Error fetching communities for discover: ${e.message}")
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
+
 
     // Function to fetch posts for a specific community by ID
     fun fetchPostsForCommunity(communityId: String) {
