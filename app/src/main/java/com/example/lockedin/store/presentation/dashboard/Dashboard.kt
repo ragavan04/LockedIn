@@ -33,6 +33,8 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.LaunchedEffect
 import org.jetbrains.annotations.Async
 
+import androidx.compose.foundation.clickable
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun DashboardScreen(
@@ -74,7 +76,7 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(16.dp))
             ConsistencyRating(localConsistency)
             Spacer(modifier = Modifier.height(16.dp))
-            CommunitiesSection(userCommunities)
+            CommunitiesSection(userCommunities, navController)
         }
     }
 }
@@ -261,7 +263,7 @@ fun PercentageBar(percentage: Float) {
 
 
 @Composable
-fun CommunitiesSection(communityList: List<Community>) {
+fun CommunitiesSection(communityList: List<Community>, navController: NavController) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
             text = "Communities",
@@ -274,19 +276,22 @@ fun CommunitiesSection(communityList: List<Community>) {
             modifier = Modifier.fillMaxSize()
         ) {
             items(communityList.size) { index ->
-                CommunityCard(communityList[index])
+                CommunityCard(communityList[index], navController)
             }
         }
     }
 }
 
 @Composable
-fun CommunityCard(community: Community) {
+fun CommunityCard(community: Community, navController: NavController) {
     Card(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .aspectRatio(1f),
+            .aspectRatio(1f)
+            .clickable {
+                navController.navigate("CommunityPosts/${community.id}")
+            },
 
         colors = CardDefaults.cardColors(
             containerColor = Color.DarkGray
