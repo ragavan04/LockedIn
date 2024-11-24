@@ -65,6 +65,7 @@ fun EditProfile(
     var description = ""
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
+    var removeProfilePic = false;
 
 
     val authState = authViewModel.authState.observeAsState()
@@ -139,9 +140,29 @@ fun EditProfile(
 
             Button(onClick = {
                 launcher.launch("image/*")
-            }) {
-                Text("Choose Image")
+            },
+                modifier = Modifier.padding(8.dp)
+                ) {
+                Text(
+                    text = "Change Profile Picture",
+                    fontSize = 11.sp,
+
+                    )
             }
+
+            Spacer(Modifier.width(8.dp))
+
+            Button(onClick = {
+                removeProfilePic = true;
+            },
+                modifier = Modifier.padding(8.dp)
+                ) {
+                Text(
+                        text = "Remove Profile Picture",
+                        fontSize = 11.sp,
+                    )
+            }
+
         }
 
         TextField(
@@ -206,10 +227,18 @@ fun EditProfile(
             Button(
                 onClick = {
                     userViewModel.updateUsername(username.value)
-                    uploadProfileImageToFirebase(imageUri, context, {pfpUrl ->
+                    if (!removeProfilePic &&  imageUri != null) {
+                        uploadProfileImageToFirebase(imageUri, context) { pfpUrl ->
+                            userViewModel.updateProfilePicture(pfpUrl)
+                        }
+                    }
 
-                        userViewModel.updateProfilePicture(pfpUrl)
-                    })
+                    if(removeProfilePic) {
+                        imageUri = null
+                        uploadProfileImageToFirebase(imageUri, context) { pfpUrl ->
+                            userViewModel.updateProfilePicture(pfpUrl)
+                        }
+                    }
 
                     navController.navigate("profile_screen")
                 },
