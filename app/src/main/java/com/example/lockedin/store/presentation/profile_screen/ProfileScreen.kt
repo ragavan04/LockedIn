@@ -96,8 +96,25 @@ fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
                 }
                 Spacer(modifier = Modifier.height(24.dp)) // Added more space after profile image
 
-                // Edit Profile Button
-                EditProfileButton(navController)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    // Edit Profile Button
+                    EditProfileButton(navController)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Button(onClick = {
+                        authViewModel.signout()
+                    },
+                        colors = ButtonDefaults.buttonColors(Purple500),
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier
+                            .height(40.dp)
+                            .width(180.dp)
+
+                        ) { Text("Sign out") }
+                }
 
                 Spacer(modifier = Modifier.height(24.dp)) // Increased spacing for better alignment
 
@@ -106,7 +123,6 @@ fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
                     bio = "Here to accomplish my fitness goals.\nIf anyone goes to GoodLife, send me a message!"
                 )
 
-                Button(onClick = { authViewModel.signout() }) { Text("Sign out") }
 
                 Spacer(modifier = Modifier.height(32.dp)) // Increased spacing to match design
 
@@ -214,7 +230,7 @@ fun EditProfileButton(navController: NavController) {
         onClick = {
             navController.navigate("edit_profile")
         },
-        colors = ButtonDefaults.buttonColors(DarkGray),
+        colors = ButtonDefaults.buttonColors(Purple500),
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .height(40.dp)
