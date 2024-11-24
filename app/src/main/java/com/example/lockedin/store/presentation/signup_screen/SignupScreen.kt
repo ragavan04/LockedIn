@@ -8,14 +8,13 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -24,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -40,6 +40,11 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import java.io.ByteArrayOutputStream
 import java.util.*
+
+
+
+val Purple500 = Color(0xFF6200EE)
+val BackgroundColor = Color.Black
 
 @Composable
 fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel) {
@@ -70,32 +75,72 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
     }
 
     Column (
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().background(BackgroundColor),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Sign Up", fontSize = 32.sp)
+        Text(text = "Sign Up", fontSize = 32.sp, color = Color.White)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(value = email, onValueChange = {email = it}, label = { Text("Email") })
+        TextField(value = email, onValueChange = {email = it}, label = { Text("Email") },
+            modifier = Modifier
+                .width(260.dp)
+                .height(60.dp)
+                .clip(RoundedCornerShape(12.dp)) // Rounded corners
+                .background(Color(0xFFFFFFFF)), // Darker TextField background
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color(0xFF333333),
+                textColor = Color.White,
+                unfocusedIndicatorColor = Color.Transparent,
+                unfocusedLabelColor = Color.White,
+                focusedIndicatorColor = Color.Transparent,
+                focusedLabelColor = Color.White,
+            ))
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
+        TextField(
             value = password,
             onValueChange = {password = it},
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            label = { Text("Password") }
+            label = { Text("Password") },
+            modifier = Modifier
+                .width(260.dp)
+                .height(60.dp)
+                .clip(RoundedCornerShape(12.dp)) // Rounded corners
+                .background(Color(0xFFFFFFFF)), // Darker TextField background
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color(0xFF333333),
+                textColor = Color.White,
+                unfocusedIndicatorColor = Color.Transparent,
+                unfocusedLabelColor = Color.White,
+                focusedIndicatorColor = Color.Transparent,
+                focusedLabelColor = Color.White,
+            )
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
+        TextField(
             value = username,
             onValueChange = {username = it},
-            label = { Text("Username") }
+            label = { Text("Username") },
+            modifier = Modifier
+                .width(260.dp)
+                .height(60.dp)
+                .clip(RoundedCornerShape(12.dp)) // Rounded corners
+                .background(Color(0xFFFFFFFF)), // Darker TextField background
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color(0xFF333333),
+                textColor = Color.White,
+                unfocusedIndicatorColor = Color.Transparent,
+                unfocusedLabelColor = Color.White,
+                focusedIndicatorColor = Color.Transparent,
+                focusedLabelColor = Color.White,
+            )
+
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -106,7 +151,8 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
 
         Button(onClick = {
             launcher.launch("image/*")
-        }){
+        }, colors = ButtonDefaults.buttonColors(backgroundColor = Purple500)) {
+
             Text("Choose Image")
         }
 
@@ -133,7 +179,7 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
 
 
 
-        }){
+        }, colors = ButtonDefaults.buttonColors(backgroundColor = Purple500)) {
             Text("Register")
         }
 
@@ -142,8 +188,9 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
 
         TextButton(onClick = {
             navController.navigate("login")
-        }){
-            Text(text = "Already have an account? Sign in!")
+
+        }) {
+            Text(text = "Already have an account? Sign in!", color = Color.White)
         }
     }
 

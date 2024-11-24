@@ -15,17 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.lockedin.R
 import com.example.lockedin.models.*
-import com.example.lockedin.store.presentation.community_posts.CommunityHeader
 
 
 @Composable
@@ -104,8 +102,9 @@ fun JoinCommunityButton(
     userViewModel: UserViewModel,
     communityId: String
 ) {
-    var isJoined by remember { mutableStateOf(false) }
 
+    var context = LocalContext.current
+    var isJoined by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -114,7 +113,7 @@ fun JoinCommunityButton(
     ) {
         Button(
             onClick = {
-                userViewModel.joinUserCommunity(communityId)
+                userViewModel.joinUserCommunity(communityId, context)
                 isJoined = true
                 Handler(Looper.getMainLooper()).postDelayed({
                     navController.navigate("CommunityPosts/$communityId")

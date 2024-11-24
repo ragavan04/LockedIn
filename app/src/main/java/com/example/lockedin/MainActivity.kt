@@ -1,5 +1,7 @@
 package com.example.lockedin
 
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,16 +10,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
+import android.Manifest
+import android.app.NotificationManager
 import androidx.compose.material3.Scaffold
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
+
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
 import com.example.lockedin.models.UserViewModel
@@ -27,13 +27,39 @@ import com.google.firebase.ktx.Firebase
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        createNotificationChannel(this)
         val db = Firebase.firestore
 
+
         setContent {
+
+//            val context = LocalContext.current
+//            var hasNotificationPermission by remember {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+//                    mutableStateOf(
+//                        ContextCompat.checkSelfPermission(
+//                            context,
+//                            Manifest.permission.POST_NOTIFICATIONS
+//                        ) == PackageManager.PERMISSION_GRANTED
+//                    )
+//                } else mutableStateOf(true)
+//            }
+
             MyApp()
         }
     }
+
+
+//    private fun showNotificaiton(){
+//        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+//        val notification = NotificationCompat.Builder(applicationContext, "channel_id")
+//            .setContentText("It's time to post for community blah blah blah!")
+//            .setContentTitle("Time to lock in")
+//            .setSmallIcon(R.drawable.ic_launcher_foreground)
+//            .build()
+//        notificationManager.notify(1, notification)
+//    }
+
 }
 
 @Composable

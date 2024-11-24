@@ -1,7 +1,8 @@
 package com.example.lockedin.store.presentation.upload_post
 
+import NotificationWorker
+import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
@@ -19,10 +20,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequest
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
@@ -34,8 +42,14 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import java.io.ByteArrayOutputStream
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 private val db = FirebaseFirestore.getInstance()
+
+
+
+
+
 @Composable
 fun UploadPost(
     modifier: Modifier = Modifier,
@@ -55,6 +69,8 @@ fun UploadPost(
 
     var capturedImage by remember { mutableStateOf<Bitmap?>(null) }
     var showSuccessMessage by remember { mutableStateOf(false) }
+
+
 
     Column(
         modifier = Modifier
