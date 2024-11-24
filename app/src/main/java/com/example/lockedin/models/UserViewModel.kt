@@ -1,15 +1,15 @@
 
 
 package com.example.lockedin.models
-import android.net.Uri
+import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import calculateNotificationDelay
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.SetOptions
@@ -21,6 +21,7 @@ import com.google.firebase.auth.userProfileChangeRequest
 import androidx.lifecycle.observe
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import scheduleCommunityNotification
 
 
 class UserViewModel : ViewModel() {
@@ -87,7 +88,7 @@ class UserViewModel : ViewModel() {
     }
 
 
-    fun joinUserCommunity(communityID: String) {
+    fun joinUserCommunity(communityID: String, context: Context) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             val userID = currentUser.uid
@@ -103,11 +104,47 @@ class UserViewModel : ViewModel() {
 
             db.collection("users").document(userID)
                 .collection("communities").document(communityID).set(userCommunity, SetOptions.merge())
+                .addOnSuccessListener {
+                   fetchCommunityTime(communityID){notificationTime, communityName ->
+                       if (notificationTime != null && communityName != null){
+                           val delay = calculateNotificationDelay(notificationTime)
+                           if (delay > 0){
+                               scheduleCommunityNotification(
+                                   context = context,
+                                   delayMillis = delay,
+                                   communityName = communityName,
+                               )
+                           }
+                       }
+                   }
+                }
                 .addOnFailureListener { e ->
                     println("Error storing user: $e")
                 }
 
         }
+    }
+
+    private fun fetchCommunityTime(communityID: String, callback: (String?, String?) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+
+        db.collection("communities").document(communityID)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    val notificationTime = document.getString("notificationTime")
+                    val communityName = document.getString("name")
+                    callback(notificationTime, communityName)
+                } else {
+                    callback("No time found", "no community name found")
+                }
+            }
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+                callback("No time found", "no community name found")
+                Log.d("USER VIEW MODEL", "ERROR WHEN CREATING NOTIF CHANNEL FOR USER JOINING")
+
+            }
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.lockedin.store.presentation.create_community_screen
 
+import NotificationWorker
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,14 +36,25 @@ import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
 import com.example.lockedin.models.UserViewModel
 import android.app.TimePickerDialog
+import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.rememberCoroutineScope
-import java.util.Calendar
+import androidx.compose.ui.platform.LocalContext
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 @Composable
 fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel, communityViewModel: CommunityViewModel, userViewModel: UserViewModel) {
 
+    val context = LocalContext.current
     var communityName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var communityPicture by remember { mutableStateOf("") }
@@ -198,7 +210,7 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
 
 
                 Button(onClick = {
-                    communityViewModel.createCommunity(communityName, description, communityPicture, notificationTime, userViewModel)
+                    communityViewModel.createCommunity(communityName, description, communityPicture, notificationTime, userViewModel, context)
                     navController.navigate("community_screen")
 
                 },
