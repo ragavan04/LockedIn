@@ -1,14 +1,17 @@
 package com.example.lockedin.models
 
+import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import calculateNotificationDelay
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import scheduleCommunityNotification
 import java.util.UUID
 
 class CommunityViewModel : ViewModel() {
@@ -32,13 +35,13 @@ class CommunityViewModel : ViewModel() {
 
 
     // LOGIC FOR PUSHING DATA TO DB
-    fun createCommunity(name: String, description: String, communityPicture: String, notificationTime: String, userViewModel: UserViewModel) {
+    fun createCommunity(name: String, description: String, communityPicture: String, notificationTime: String, userViewModel: UserViewModel, context: Context) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             val communityId = UUID.randomUUID().toString()  // Generate a unique community ID
 
 
-            userViewModel.joinUserCommunity(communityId)
+            userViewModel.joinUserCommunity(communityId, context)
 
             // Create a community object to store in Firestore
             val community = hashMapOf(
@@ -56,6 +59,15 @@ class CommunityViewModel : ViewModel() {
                 .set(community, SetOptions.merge())
                 .addOnSuccessListener {
                     println("Community successfully created with ID: $communityId")
+
+//                    val delay = calculateNotificationDelay(notificationTime)
+//                    if (delay > 0){
+//                        scheduleCommunityNotification(
+//                            context = context,
+//                            delayMillis = delay,
+//                            communityName = name,
+//                        )
+//                    }
 
                     // Add the creator to the `members` sub-collection and set them as the owner
                     val member = hashMapOf(
