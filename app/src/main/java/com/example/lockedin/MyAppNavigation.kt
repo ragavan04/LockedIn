@@ -16,6 +16,7 @@ import com.example.lockedin.store.presentation.dashboard.DashboardScreen
 import com.example.lockedin.store.presentation.my_progress_screen.MyProgressScreen
 import com.example.lockedin.store.presentation.create_community_screen.CreateCommunityScreen
 import com.example.lockedin.store.presentation.login_screen.LoginScreen
+import com.example.lockedin.store.presentation.edit_profile.EditProfile
 import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
 import com.example.lockedin.store.presentation.signup_screen.SignupScreen
 import com.example.lockedin.store.presentation.upload_post.UploadPost
@@ -46,7 +47,10 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
                 MyProgressScreen(modifier, navController, authViewModel, userViewModel)
             }
             composable("profile_screen"){
-                ProfileScreen(modifier, navController, authViewModel)
+                ProfileScreen(modifier, navController, authViewModel, userViewModel)
+            }
+            composable("edit_profile"){
+                EditProfile(modifier, navController, authViewModel, communityViewModel,userViewModel)
             }
 //            composable("search_screen") {
 //                SearchScreen(modifier, navController, authViewModel)

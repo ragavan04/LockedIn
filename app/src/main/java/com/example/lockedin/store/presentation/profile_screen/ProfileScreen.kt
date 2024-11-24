@@ -23,10 +23,13 @@ import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 //import coil3.compose.AsyncImage
 import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
+import com.example.lockedin.models.UserViewModel
+import com.example.lockedin.store.presentation.my_progress_screen.ExpandableBanner
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
@@ -35,9 +38,14 @@ val Purple500 = Color(0xFF6200EE)
 val BackgroundColor = Color.Black
 
 @Composable
-fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, navController: NavController, authViewModel: AuthViewModel) {
+fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel) {
     val authState = authViewModel.authState.observeAsState()
     val user = Firebase.auth.currentUser
+
+    val userCommunities = userViewModel.userCommunities.observeAsState(emptyList()).value
+
+    val totalPoints = 0
+
 
 
 
@@ -47,6 +55,14 @@ fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
             else -> Unit
         }
     }
+
+
+    LaunchedEffect(Unit){
+        userViewModel.updateTotalPoints()
+        userViewModel.updateAverageConsistency()
+    }
+
+
     user?.let {
         val username = it.displayName
         val email = it.email
@@ -81,7 +97,7 @@ fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
                 Spacer(modifier = Modifier.height(24.dp)) // Added more space after profile image
 
                 // Edit Profile Button
-                EditProfileButton()
+                EditProfileButton(navController)
 
                 Spacer(modifier = Modifier.height(24.dp)) // Increased spacing for better alignment
 
@@ -95,11 +111,78 @@ fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
                 Spacer(modifier = Modifier.height(32.dp)) // Increased spacing to match design
 
                 // Communities and Points Section with a larger rounded box
-                StatsSection(communities = 4, points = 219)
+
+                var localPoints : Int = 0
+                var localConsistency: Float = 0f
+
+                if(userViewModel.totalPoints.value != null) {
+                    localPoints = userViewModel.totalPoints.value!!
+                }
+
+                if(userViewModel.averageConsistency.value != null) {
+                    localConsistency = userViewModel.averageConsistency.value!!
+                }
+
+
+                StatsSection(communities = userCommunities.size, points = localPoints)
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp)
+                ) {
+
+                    val localPercentage = localConsistency?.div(100)
+                    val stringPercentage = "${localPercentage}f"
+                    val percentage = stringPercentage.toFloat()
+                    PercentageBar(percentage)
+                }
+
+                val intConsistency = localConsistency?.toInt()
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 1.dp)
+                    ) {
+                        Text(
+                            text = "${intConsistency}% Consistency",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
             }
         }
     }
 }
+
+
+@Composable
+fun PercentageBar(percentage: Float) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(20.dp)
+            .background(Color.Gray, shape = RoundedCornerShape(10.dp))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(percentage.coerceIn(0f, 1f))
+                .fillMaxHeight()
+                .background(Color.White, shape = RoundedCornerShape(10.dp))
+        )
+    }
+}
+
 
 @Composable
 fun ProfileHeader(name: String, image: Uri?) {
@@ -126,9 +209,11 @@ fun ProfileHeader(name: String, image: Uri?) {
 }
 
 @Composable
-fun EditProfileButton() {
+fun EditProfileButton(navController: NavController) {
     Button(
-        onClick = { /* Handle edit profile click */ },
+        onClick = {
+            navController.navigate("edit_profile")
+        },
         colors = ButtonDefaults.buttonColors(DarkGray),
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier

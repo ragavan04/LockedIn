@@ -47,8 +47,15 @@ fun DashboardScreen(
 
     LaunchedEffect(Unit) {
         userViewModel.fetchUserCommunities()
+        userViewModel.updateAverageConsistency()
     }
 
+
+    var localConsistency: Float = 0f
+
+    if(userViewModel.averageConsistency.value != null) {
+        localConsistency = userViewModel.averageConsistency.value!!
+    }
 
 
     Scaffold(
@@ -65,7 +72,7 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(16.dp))
             OverviewProgressToggle()
             Spacer(modifier = Modifier.height(16.dp))
-            ConsistencyRating()
+            ConsistencyRating(localConsistency)
             Spacer(modifier = Modifier.height(16.dp))
             CommunitiesSection(userCommunities)
         }
@@ -195,7 +202,7 @@ fun PillButton(text: String, isSelected: Boolean) {
 }
 
 @Composable
-fun ConsistencyRating() {
+fun ConsistencyRating(consistency: Float) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -214,19 +221,44 @@ fun ConsistencyRating() {
             color = Color.LightGray
         )
         Spacer(modifier = Modifier.height(8.dp))
+
+        val intConsistency = consistency?.toInt()
+
         Text(
-            text = "76%",
+            text = "${intConsistency}%",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
-        LinearProgressIndicator(
-            progress = 0.76f,
-            modifier = Modifier.fillMaxWidth(),
-            color = Color.Blue
+
+        val localPercentage = consistency?.div(100)
+        val stringPercentage = "${localPercentage}f"
+        val percentage = stringPercentage.toFloat()
+
+        PercentageBar(percentage)
+
+    }
+}
+
+@Composable
+fun PercentageBar(percentage: Float) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(12.dp)
+            .background(Color.Gray, shape = RoundedCornerShape(10.dp))
+    ) {
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(percentage.coerceIn(0f, 1f))
+                .fillMaxHeight()
+                .background(Color.Blue, shape = RoundedCornerShape(10.dp))
         )
     }
 }
+
 
 @Composable
 fun CommunitiesSection(communityList: List<Community>) {
