@@ -1,6 +1,9 @@
 
 
 package com.example.lockedin.models
+import android.net.Uri
+import android.util.Log
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.compose.runtime.mutableStateListOf
@@ -14,6 +17,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.userProfileChangeRequest
+import androidx.lifecycle.observe
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -36,6 +41,8 @@ class UserViewModel : ViewModel() {
 
     val UserCommunityList = mutableStateListOf<UserCommunity>()
 
+    var currentUsername = mutableStateOf("")
+
     val postsForCommunity = mutableStateListOf<Post>()
 
     val userCommunities: LiveData<List<Community>> = _userCommunities
@@ -47,6 +54,10 @@ class UserViewModel : ViewModel() {
     val consistencyForCommunity = mutableStateOf<Float?>(0f)
 
     val currentUserCommunity = mutableStateOf<UserCommunity?>(null)
+
+    var totalPoints = mutableStateOf<Int?>(0)
+
+    var averageConsistency = mutableStateOf<Float?>(0f)
 
 
     // LOGIC FOR PUSHING USER DATA TO DATABASE
@@ -129,6 +140,31 @@ class UserViewModel : ViewModel() {
 
     }
 
+    fun fetchUsername() {
+        viewModelScope.launch {
+
+            try {
+                var currentUser = auth.currentUser
+                if (currentUser != null) {
+                    val userID = currentUser.uid
+
+                    val userCommunitySnapshot = db.collection("users").document(userID).get().await()
+
+                    if(userCommunitySnapshot != null) {
+                        val username = userCommunitySnapshot.getString("username")
+
+                        if(username != null) {
+                            currentUsername.value = username
+                        }
+                    }
+
+                }
+
+            } catch (e: Exception) {
+                println("Error fetching username: ${e.message}")
+            }
+        }
+    }
 
     fun fetchUserCommunityList(communityId: String) {
         viewModelScope.launch {
@@ -184,6 +220,130 @@ class UserViewModel : ViewModel() {
                 println("Error fetching community: ${e.message}")
             }
         }
+    }
+
+    fun updateUsername(updatedUsername: String) {
+
+        viewModelScope.launch {
+
+            try {
+                val currentUser = auth.currentUser
+                if (currentUser != null) {
+                    val userID = currentUser.uid
+
+                    db.collection("users").document(userID).update("username", updatedUsername)
+                    println("User updated: $updatedUsername")
+
+                }
+
+            } catch (e: Exception) {
+                println("Error updating username: ${e.message}")
+            }
+        }
+
+    }
+
+    fun updateTotalPoints() {
+
+        val communities = _userCommunities.value ?: emptyList()
+        totalPoints.value = 0
+
+        println("The # of communities the user is in is: ${communities.size}")
+
+        for (community in communities) {
+            val userCommunity = fetchUserCommunityById(community.id)
+
+            if(userCommunity != null) {
+                fetchPointsForCommunity(community.id) { points ->
+                    if (points != null) {
+                        // Safely update totalPoints inside the callback
+                        totalPoints.value = (totalPoints.value ?: 0) + points
+                    }
+                }
+            }
+        }
+    }
+
+    fun updateAverageConsistency() {
+
+        val communities = _userCommunities.value ?: emptyList()
+
+
+        if (communities.isEmpty()) {
+            averageConsistency.value = 0f
+            println("Average consistency is ${averageConsistency.value}")
+            return
+        }
+
+        var totalConsistency = 0f
+        var processedCount = 0
+
+        for (community in communities) {
+            val userCommunity = fetchUserCommunityById(community.id)
+
+            println("Checking for the community: ${community.id}")
+
+            if (userCommunity != null) {
+                fetchConsistencyForCommunity(community.id) { consistency ->
+                    if (consistency != null) {
+                        totalConsistency += consistency
+                    }
+
+                    println("Obtained consistency for ${community.id}: $consistency")
+
+                    processedCount++
+
+
+                    if (processedCount == communities.size) {
+                        averageConsistency.value = totalConsistency / communities.size.toFloat()
+                        println("Average consistency is ${averageConsistency.value}")
+                    }
+                }
+            } else {
+
+                processedCount++
+                if (processedCount == communities.size) {
+                    averageConsistency.value = totalConsistency / communities.size.toFloat()
+                    println("Average consistency is ${averageConsistency.value}")
+                }
+            }
+        }
+
+    }
+
+
+    fun updateProfilePicture(profilePicUrl: String) {
+
+        viewModelScope.launch {
+
+            try {
+
+                val currentUser = auth.currentUser
+                if (currentUser != null) {
+                    val userID = currentUser.uid
+
+                    val document = db.collection("users").document(userID).get().await()
+
+
+                    val profileUpdates = userProfileChangeRequest {
+                        displayName = document.getString("username")
+                        photoUri = Uri.parse(profilePicUrl)
+                    }
+
+                    auth.currentUser!!.updateProfile(profileUpdates)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Log.d("USER PROFILE", "User profile updated.")
+                            }
+                        }
+                }
+
+            } catch (e: Exception) {
+                println("Error updating username: ${e.message}")
+            }
+        }
+
+
     }
 
     fun fetchUsernameByUserId(userId: String, onResult: (String?) -> Unit) {
