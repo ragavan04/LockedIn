@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.storage.ktx)
+    implementation(libs.androidx.media3.exoplayer)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -90,6 +91,8 @@ dependencies {
     implementation("androidx.compose.material:material:1.7.4")
     implementation("androidx.compose.ui:ui:1.7.4")
     implementation(libs.androidx.navigation.compose.v240)
+    implementation ("com.google.accompanist:accompanist-pager:0.30.1")
+
 }
 
 // dependencies {
