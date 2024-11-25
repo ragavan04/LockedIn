@@ -1,5 +1,6 @@
 package com.example.lockedin
 
+import Steps
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
@@ -17,6 +18,8 @@ import com.example.lockedin.store.presentation.my_progress_screen.MyProgressScre
 import com.example.lockedin.store.presentation.create_community_screen.CreateCommunityScreen
 import com.example.lockedin.store.presentation.login_screen.LoginScreen
 import com.example.lockedin.store.presentation.edit_profile.EditProfile
+import com.example.lockedin.store.presentation.intro_pages.Welcome
+import com.example.lockedin.store.presentation.intro_pages.Offers
 import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
 import com.example.lockedin.store.presentation.signup_screen.SignupScreen
 import com.example.lockedin.store.presentation.upload_post.UploadPost
@@ -81,6 +84,15 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
                 if (communityId != null) {
                     viewCommunity(modifier, navController, authViewModel, userViewModel, communityViewModel, communityId = communityId)
                 }
+            }
+            composable("welcome"){
+                Welcome(modifier, navController, authViewModel, userViewModel)
+            }
+            composable("offers"){
+                Offers(modifier, navController, authViewModel, userViewModel)
+            }
+            composable("steps"){
+                Steps(modifier, navController, authViewModel, userViewModel)
             }
         })
     }
