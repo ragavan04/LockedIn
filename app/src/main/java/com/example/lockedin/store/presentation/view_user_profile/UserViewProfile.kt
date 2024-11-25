@@ -1,4 +1,6 @@
-package com.example.lockedin
+package com.example.lockedin.store.presentation.view_user_profile
+
+import com.example.lockedin.BottomNavigationBar
 
 import android.net.Uri
 import android.util.Log
@@ -38,14 +40,13 @@ val Purple500 = Color(0xFF6200EE)
 val BackgroundColor = Color.Black
 
 @Composable
-fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
+fun UserViewProfile(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
                   navController: NavController,
                   authViewModel: AuthViewModel,
-                  userViewModel: UserViewModel) {
-    val authState = authViewModel.authState.observeAsState()
-    val user = Firebase.auth.currentUser
+                  userViewModel: UserViewModel,
+                  userId: String) {
 
-    val userCommunities = userViewModel.userCommunities.observeAsState(emptyList()).value
+    val authState = authViewModel.authState.observeAsState()
 
     val totalPoints = 0
 
@@ -56,36 +57,42 @@ fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
         }
     }
 
+    val userCommunities = userViewModel.userCommunities.observeAsState(emptyList()).value
+
 
     LaunchedEffect(Unit){
-        userViewModel.updateTotalPoints("")
-        userViewModel.updateAverageConsistency("")
-        val photoUrlString = user?.photoUrl?.toString() ?: ""
-        userViewModel.updateProfilePic(photoUrlString)
-        if (user != null) {
-            userViewModel.updateProfilePictureForCommunities(user.uid, photoUrlString)
+        userViewModel.fetchUserById(userId)
+        userViewModel.fetchUserCommunities(userId)
+    }
+
+
+
+    var user = userViewModel.currentUser.value
+    val communities = userViewModel.userCommunities.observeAsState(emptyList()).value
+
+    LaunchedEffect(communities) {
+        if (communities.isNotEmpty()) {
+            userViewModel.updateTotalPoints(userId)
+            userViewModel.updateAverageConsistency(userId)
         }
     }
 
 
     user?.let {
-        val username = it.displayName
-        val email = it.email
-        val photoUrl = it.photoUrl
-        val uid = it.uid
+        val username = user.username
+        val photoUrlString = user.profilePic
+        val userID = user.userID
 
-        println("My profile picture URL is ${photoUrl.toString()}")
+        println("The profile picture for ${userID} is ${photoUrlString}")
 
         if (username != null) {
             Log.d("FROM PROFILE SCREEN", username)
         }
 
-
         Scaffold(
 
             bottomBar = { BottomNavigationBar(navController) }
         ) {
-
 
             Column(
                 modifier = Modifier
@@ -98,29 +105,8 @@ fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
                 if (username != null) {
                     ProfileHeader(
                         name = username,
-                        image = photoUrl // Replace with your image resource
+                        image = Uri.parse(photoUrlString) // Replace with your image resource
                     )
-                }
-                Spacer(modifier = Modifier.height(24.dp)) // Added more space after profile image
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    // Edit Profile Button
-                    EditProfileButton(navController)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Button(onClick = {
-                        authViewModel.signout()
-                    },
-                        colors = ButtonDefaults.buttonColors(Purple500),
-                        shape = RoundedCornerShape(24.dp),
-                        modifier = Modifier
-                            .height(40.dp)
-                            .width(180.dp)
-
-                        ) { Text("Sign out") }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp)) // Increased spacing for better alignment
@@ -208,7 +194,7 @@ fun PercentageBar(percentage: Float) {
 
 
 @Composable
-fun ProfileHeader(name: String, image: Uri?) {
+fun ProfileHeader(name: String, image: Uri) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

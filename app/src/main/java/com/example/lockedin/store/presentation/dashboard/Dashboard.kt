@@ -44,13 +44,20 @@ fun DashboardScreen(
 ) {
     val currentUser = com.google.firebase.Firebase.auth.currentUser
     val username = currentUser?.displayName ?: "User"
-    val userCommunities = userViewModel.userCommunities.observeAsState(emptyList()).value
 
 
     LaunchedEffect(Unit) {
-        userViewModel.fetchUserCommunities()
-        userViewModel.updateAverageConsistency()
+        userViewModel.fetchUserCommunities("")
+        val photoUrlString = currentUser?.photoUrl?.toString() ?: ""
+        userViewModel.updateProfilePic(photoUrlString)
+
     }
+
+    LaunchedEffect(userViewModel.userCommunities.observeAsState().value) {
+        userViewModel.updateAverageConsistency("")
+    }
+
+    val userCommunities = userViewModel.userCommunities.observeAsState(emptyList()).value
 
 
     var localConsistency: Float = 0f

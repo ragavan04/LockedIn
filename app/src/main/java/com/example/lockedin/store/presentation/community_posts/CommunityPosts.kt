@@ -126,6 +126,20 @@ fun CommunityHeader(
                 modifier = Modifier.align(Alignment.CenterEnd),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
+                IconButton(
+                    onClick = { navController.navigate("ViewUsers/$communityId") },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.view_icon),
+                        contentDescription = "Progress",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
                 // Statistics IconButton
                 IconButton(
                     onClick = { /* Leave blank for navigation */ },

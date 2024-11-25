@@ -9,6 +9,7 @@ import calculateNotificationDelay
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.SetOptions
+import com.example.lockedin.models.UserViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import scheduleCommunityNotification
@@ -28,6 +29,8 @@ class CommunityViewModel : ViewModel() {
 
     // List to hold posts for a specific community
     val postsForCommunity = mutableStateListOf<Post>()
+
+    val usersForCommunity = mutableStateListOf<Member>()
 
     val currentCommunity = mutableStateOf<Community?>(null)
 
@@ -73,8 +76,11 @@ class CommunityViewModel : ViewModel() {
                     val member = hashMapOf(
                         "userId" to currentUser.uid,
                         "role" to "owner",  // Define them as the owner
+                        "username" to "",
+                        "profilePic" to "",
                         "joinedAt" to System.currentTimeMillis()
                     )
+
                     db.collection("communities").document(communityId)
                         .collection("members").document(currentUser.uid)
                         .set(member)
@@ -84,6 +90,13 @@ class CommunityViewModel : ViewModel() {
                         .addOnFailureListener { e ->
                             println("Error adding community owner: $e")
                         }
+
+                    userViewModel.addUsernameToMembers(communityId,currentUser.uid)
+                    userViewModel.addProfilePicToMembers(communityId, currentUser.uid)
+
+
+
+
 
 
                 }
@@ -120,6 +133,7 @@ class CommunityViewModel : ViewModel() {
             }
         }
     }
+
 
     fun fetchCommunitiesForDiscover(userId: String) {
         viewModelScope.launch {
@@ -166,7 +180,7 @@ class CommunityViewModel : ViewModel() {
             .collection("posts")
             .get()
             .addOnSuccessListener { snapshot ->
-                postsForCommunity.clear()
+                usersForCommunity.clear()
                 for (document in snapshot.documents) {
                     val post = document.toObject(Post::class.java)?.copy(postId = document.id)
                     if (post != null) {
@@ -178,6 +192,27 @@ class CommunityViewModel : ViewModel() {
                 println("Error fetching posts: ${exception.message}")
             }
     }
+
+
+    fun fetchMembersForCommunity(communityId: String) {
+        db.collection("communities")
+            .document(communityId)
+            .collection("members")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                postsForCommunity.clear()
+                for (document in snapshot.documents) {
+                    val member = document.toObject(Member::class.java)?.copy(userId = document.id)
+                    if (member != null) {
+                        usersForCommunity.add(member)
+                    }
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error fetching members: ${exception.message}")
+            }
+    }
+
 
 
     fun fetchCommunityById(communityId: String) {

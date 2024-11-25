@@ -16,7 +16,9 @@ import com.example.lockedin.store.presentation.dashboard.DashboardScreen
 import com.example.lockedin.store.presentation.my_progress_screen.MyProgressScreen
 import com.example.lockedin.store.presentation.create_community_screen.CreateCommunityScreen
 import com.example.lockedin.store.presentation.login_screen.LoginScreen
+import com.example.lockedin.store.presentation.view_users.ViewUsers
 import com.example.lockedin.store.presentation.edit_profile.EditProfile
+import com.example.lockedin.store.presentation.view_user_profile.UserViewProfile
 import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
 import com.example.lockedin.store.presentation.signup_screen.SignupScreen
 import com.example.lockedin.store.presentation.upload_post.UploadPost
@@ -68,6 +70,18 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
                 val communityId = backStackEntry.arguments?.getString("communityId")
                 if (communityId != null) {
                     UploadPost(modifier, navController, authViewModel, userViewModel, communityId = communityId)
+                }
+            }
+            composable("profile_screen/{userId}"){ backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId")
+                if (userId != null) {
+                    UserViewProfile(modifier, navController, authViewModel, userViewModel, userId = userId)
+                }
+            }
+            composable("ViewUsers/{communityId}"){ backStackEntry ->
+                val communityId = backStackEntry.arguments?.getString("communityId")
+                if (communityId != null) {
+                    ViewUsers(modifier, navController, authViewModel, communityViewModel, userViewModel, communityId = communityId)
                 }
             }
             composable("ProgressScreen/{communityId}"){ backStackEntry ->
