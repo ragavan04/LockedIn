@@ -131,11 +131,17 @@ fun CommunityHeader(
                     onClick = { navController.navigate("ViewUsers/$communityId") },
                     modifier = Modifier.size(36.dp)
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.view_icon),
-                        contentDescription = "Progress",
+                    Icon(
+                        imageVector = Icons.Default.,
+                        contentDescription = "Search",
+                        tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
+                    // Image(
+                    //     painter = painterResource(id = R.drawable.view_icon),
+                    //     contentDescription = "Progress",
+                    //     modifier = Modifier.size(24.dp)
+                    // )
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
