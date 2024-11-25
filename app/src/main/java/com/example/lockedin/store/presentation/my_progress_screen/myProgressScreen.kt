@@ -49,6 +49,7 @@ import com.example.lockedin.store.presentation.community_feed.CommunityItem
 import com.example.lockedin.store.presentation.community_feed.CommunityItemView
 import com.example.lockedin.models.UserViewModel
 import com.example.lockedin.store.presentation.dashboard.CommunityCard
+import com.example.lockedin.ui.theme.black
 import com.example.lockedin.ui.theme.poppinsFontFamily
 
 @Composable
@@ -68,7 +69,7 @@ fun MyProgressScreen(modifier: Modifier = Modifier, navController: NavController
     }
 
     LaunchedEffect(Unit) {
-        userViewModel.fetchUserCommunities()
+        userViewModel.fetchUserCommunities("")
     }
 
     androidx.compose.material.Scaffold(
@@ -78,7 +79,7 @@ fun MyProgressScreen(modifier: Modifier = Modifier, navController: NavController
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF131313))
+                .background(Color.Black)
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
@@ -87,14 +88,14 @@ fun MyProgressScreen(modifier: Modifier = Modifier, navController: NavController
                 text = "My Progress",
                 fontSize = 36.sp,
                 color = Color.White,
-                fontFamily = poppinsFontFamily,
+                // fontFamily = poppinsFontFamily,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = 8.dp, top = 24.dp),
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             CommunitiesSection(userCommunities, userViewModel, navController)
         }
@@ -151,7 +152,7 @@ fun ExpandableBanner(
                     isExpanded = !isExpanded
 
                     if (isExpanded) {
-                        userViewModel.fetchPointsForCommunity(community.id) { points ->
+                        userViewModel.fetchPointsForCommunity(community.id,"") { points ->
                             localPoints = points
                         }
 
@@ -159,11 +160,10 @@ fun ExpandableBanner(
                             localStreak = streak
                         }
 
-                        userViewModel.fetchConsistencyForCommunity(community.id) { consistency ->
+                        userViewModel.fetchConsistencyForCommunity(community.id, "") { consistency ->
                             localConsistency = consistency
                         }
                     }
-
 
                 }
                 .padding(vertical = 8.dp)

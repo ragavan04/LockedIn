@@ -179,6 +179,7 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
 
 
 
+
         }, colors = ButtonDefaults.buttonColors(backgroundColor = Purple500)) {
             Text("Register")
         }

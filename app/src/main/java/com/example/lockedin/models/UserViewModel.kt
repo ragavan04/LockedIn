@@ -55,6 +55,8 @@ class UserViewModel : ViewModel() {
 
     val consistencyForCommunity = mutableStateOf<Float?>(0f)
 
+    val currentUser = mutableStateOf<User?>(null)
+
     val currentUserCommunity = mutableStateOf<UserCommunity?>(null)
 
     var totalPoints = mutableStateOf<Int?>(0)
@@ -68,11 +70,13 @@ class UserViewModel : ViewModel() {
         if (currentUser != null) {
             var userID = currentUser.uid
 
+
             // Create a community object to store in Firestore
             val user = hashMapOf(
                 "userID" to userID,
-                "username" to username
+                "username" to username,
             )
+
 
             // Store the user in Firestore
             db.collection("users").document(userID)
@@ -83,10 +87,12 @@ class UserViewModel : ViewModel() {
                 .addOnFailureListener { e ->
                     println("Error storing use777r: $e")
                 }
+
         } else {
             println("User not authenticated777!")
         }
     }
+
 
 
     fun joinUserCommunity(communityID: String, context: Context) {
@@ -126,6 +132,90 @@ class UserViewModel : ViewModel() {
         }
     }
 
+    fun addUsernameToMembers(communityId: String, userId: String) {
+        viewModelScope.launch {
+            try {
+                var currentUser = auth.currentUser
+                if (currentUser != null) {
+                    val userCommunitySnapshot = db.collection("users").document(userId).get().await()
+
+                    if(userCommunitySnapshot != null) {
+                        val username = userCommunitySnapshot.getString("username")
+
+                        if(username != null) {
+
+                            db.collection("communities").document(communityId)
+                                .collection("members").document(userId).update("username", username)
+
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("Error fetching username: ${e.message}")
+            }
+        }
+    }
+
+
+    fun updateProfilePicToMembers(communityId: String, userId: String, imageUri: String?) {
+        viewModelScope.launch {
+            try {
+                val currentUser = auth.currentUser
+                if (currentUser != null) {
+                    val userID = currentUser.uid
+
+                    // Check if the imageUri is valid, otherwise set to an empty string
+                    val profilePicUri = if (imageUri.isNullOrBlank() || imageUri == "error") "" else imageUri
+
+                    db.collection("communities").document(communityId).collection("members").document(userId).update("profilePic", profilePicUri)
+                        .addOnSuccessListener {
+                            println("ProfilePic updated successfully: $profilePicUri")
+                        }
+                        .addOnFailureListener { e ->
+                            println("Error updating profilePic in Firestore: ${e.message}")
+                        }
+                }
+            } catch (e: Exception) {
+                println("Error updating profilePic: ${e.message}")
+            }
+        }
+    }
+
+    fun addProfilePicToMembers(communityId: String, userId: String) {
+        viewModelScope.launch {
+            try {
+                val currentUser = auth.currentUser
+                if (currentUser != null) {
+                    // Get the photoUrl and ensure a valid value is set
+                    val photoUrl = currentUser.photoUrl
+                    val photoUrlString = photoUrl?.toString() ?: ""
+
+                    if (photoUrlString.isBlank() || photoUrlString == "error") {
+                        println("Invalid photoUrl found, defaulting to an empty string.")
+                    } else {
+                        println("Valid photoUrl found: $photoUrlString")
+                    }
+
+                    val profilePicUri = if (photoUrlString.isBlank() || photoUrlString == "error") "" else photoUrlString
+
+                    // Update the Firestore document with the validated profilePicUri
+                    db.collection("communities").document(communityId)
+                        .collection("members").document(userId)
+                        .update("profilePic", profilePicUri)
+                        .addOnSuccessListener {
+                            println("Profile picture updated successfully for user: $userId")
+                        }
+                        .addOnFailureListener { e ->
+                            println("Error updating profile picture in Firestore: ${e.message}")
+                        }
+                }
+            } catch (e: Exception) {
+                println("Error in addProfilePicToMembers: ${e.message}")
+            }
+        }
+    }
+
+
     private fun fetchCommunityTime(communityID: String, callback: (String?, String?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
 
@@ -148,6 +238,17 @@ class UserViewModel : ViewModel() {
             }
     }
 
+    fun fetchUserById(userId: String) {
+        viewModelScope.launch {
+            try {
+                val document = db.collection("users").document(userId).get().await()
+                val user = document.toObject(User::class.java)
+                currentUser.value = user
+            } catch (e: Exception) {
+                println("Error fetching community: ${e.message}")
+            }
+        }
+    }
 
 
     fun fetchUsers() {
@@ -234,26 +335,29 @@ class UserViewModel : ViewModel() {
     }
 
 
-    fun fetchUserCommunityById(communityId: String) {
+    fun fetchUserCommunityById(communityId: String, userId: String) {
         viewModelScope.launch {
             try {
-                val currentUser = auth.currentUser
-                if (currentUser != null) {
-                    val userID = currentUser.uid
+                var userID: String = ""
 
-                    val document = db.collection("users").document(userID)
-                        .collection("communities").document(communityId).get().await()
-
-                    val userCommunity = document.toObject(UserCommunity::class.java)
-
-                    if (userCommunity != null) {
-
-                        println("User Community found: ${userCommunity.id}")
-
-                        currentUserCommunity.value = userCommunity
-                    }
-
+                if(userId == "") {
+                    userID = auth.currentUser?.uid.toString()
+                } else {
+                    userID = userId
                 }
+
+                val document = db.collection("users").document(userID)
+                    .collection("communities").document(communityId).get().await()
+
+                val userCommunity = document.toObject(UserCommunity::class.java)
+
+                if (userCommunity != null) {
+
+                    println("User Community found: ${userCommunity.id}")
+
+                    currentUserCommunity.value = userCommunity
+                }
+
             } catch (e: Exception) {
                 println("Error fetching community: ${e.message}")
             }
@@ -281,30 +385,106 @@ class UserViewModel : ViewModel() {
 
     }
 
-    fun updateTotalPoints() {
+    fun updateProfilePic(imageUri: String?) {
+        viewModelScope.launch {
+            try {
+                val currentUser = auth.currentUser
+                if (currentUser != null) {
+                    val userID = currentUser.uid
+
+                    // Check if the imageUri is valid, otherwise set to an empty string
+                    val profilePicUri = if (imageUri.isNullOrBlank() || imageUri == "error") "" else imageUri
+
+                    db.collection("users").document(userID).update("profilePic", profilePicUri)
+                        .addOnSuccessListener {
+                            println("ProfilePic updated successfully: $profilePicUri")
+                        }
+                        .addOnFailureListener { e ->
+                            println("Error updating profilePic in Firestore: ${e.message}")
+                        }
+                }
+            } catch (e: Exception) {
+                println("Error updating profilePic: ${e.message}")
+            }
+        }
+    }
+
+    fun updateProfilePictureForCommunities(userId: String, imageUri: String?) {
+
 
         val communities = _userCommunities.value ?: emptyList()
-        totalPoints.value = 0
+        var totalPointsLocal = 0 // Use a local variable to accumulate points
+        var processedCount = 0 // Track processed communities
+
+        println("The # of communities the user is in is!!!!: ${communities.size}")
+
+        fetchUserCommunities(userId)
+        var imageUriString: String = ""
+
+        for (community in communities) {
+
+            println("CHECKING FOR THE ID ${community.id}")
+            if(imageUri != "error") {
+                if (imageUri != null) {
+                    imageUriString = imageUri
+                }
+            }
+
+            println("PASSING IN THE URL ${imageUriString}")
+            val userCommunity = fetchUserCommunityById(community.id, userId)
+
+            if (userCommunity != null) {
+                updateProfilePicToMembers(community.id,userId, imageUriString)
+            }
+        }
+    }
+
+    fun updateTotalPoints(userId: String) {
+        val communities = _userCommunities.value ?: emptyList()
+        var totalPointsLocal = 0 // Use a local variable to accumulate points
+        var processedCount = 0 // Track processed communities
 
         println("The # of communities the user is in is: ${communities.size}")
 
         for (community in communities) {
-            val userCommunity = fetchUserCommunityById(community.id)
+            val userCommunity = fetchUserCommunityById(community.id, userId)
 
-            if(userCommunity != null) {
-                fetchPointsForCommunity(community.id) { points ->
+            if (userCommunity != null) {
+                fetchPointsForCommunity(community.id, userId) { points ->
                     if (points != null) {
-                        // Safely update totalPoints inside the callback
-                        totalPoints.value = (totalPoints.value ?: 0) + points
+                        totalPointsLocal += points
                     }
+
+                    processedCount++
+
+                    if (processedCount == communities.size) {
+                        // Update totalPoints only once after processing all communities
+                        totalPoints.value = totalPointsLocal
+                        println("Total points updated: ${totalPoints.value}")
+                    }
+                }
+            } else {
+                processedCount++
+
+                if (processedCount == communities.size) {
+                    // Update totalPoints if no user communities found
+                    totalPoints.value = totalPointsLocal
+                    println("Total points updated: ${totalPoints.value}")
                 }
             }
         }
     }
 
-    fun updateAverageConsistency() {
+    fun updateAverageConsistency(userId: String) {
 
         val communities = _userCommunities.value ?: emptyList()
+
+        for (community in communities) {
+            // Access each community here
+            println("COMMUNITY NAME FROM CONSISTENCY: ${community.name}")
+        }
+
+        println("THIS USER IS FOUND IN ${communities.size} COMMUNITIES FOR USER ${userId}")
 
 
         if (communities.isEmpty()) {
@@ -317,20 +497,18 @@ class UserViewModel : ViewModel() {
         var processedCount = 0
 
         for (community in communities) {
-            val userCommunity = fetchUserCommunityById(community.id)
+            val userCommunity = fetchUserCommunityById(community.id, userId)
 
             println("Checking for the community: ${community.id}")
 
             if (userCommunity != null) {
-                fetchConsistencyForCommunity(community.id) { consistency ->
+                fetchConsistencyForCommunity(community.id, userId) { consistency ->
                     if (consistency != null) {
                         totalConsistency += consistency
                     }
-
                     println("Obtained consistency for ${community.id}: $consistency")
 
                     processedCount++
-
 
                     if (processedCount == communities.size) {
                         averageConsistency.value = totalConsistency / communities.size.toFloat()
@@ -350,10 +528,10 @@ class UserViewModel : ViewModel() {
     }
 
 
+
     fun updateProfilePicture(profilePicUrl: String) {
 
         viewModelScope.launch {
-
             try {
 
                 val currentUser = auth.currentUser
@@ -404,31 +582,62 @@ class UserViewModel : ViewModel() {
     fun fetchCommunityDetails(communityIds: List<String>) {
         val communities = mutableListOf<Community>()
         for (id in communityIds) {
+            println("ID PART 2: ${id}")
             Firebase.firestore.collection("communities")
                 .document(id)
                 .get()
                 .addOnSuccessListener { document ->
                     val community = document.toObject(Community::class.java)
+                    println("STORING THE ID: ${community?.id}")
                     if (community != null) {
                         communities.add(community)
                     }
+                    _userCommunities.value = emptyList()
                     _userCommunities.value = communities
+
+                    _userCommunities.value?.let { communities ->
+                        for (community in communities) {
+                            // Access each community here
+                            println("Community Name: ${community.name}")
+                        }
+                    }
+
+
                 }
         }
+        println("User is a part of ${communities.size} communities")
     }
 
-    fun fetchUserCommunities() {
-        val userId = Firebase.auth.currentUser?.uid
-        if (userId != null) {
+    fun fetchUserCommunities(userId: String) {
+
+        _userCommunities.value = emptyList()
+
+        var userID: String = ""
+
+        if(userId == "") {
+            userID = auth.currentUser?.uid.toString()
+        } else {
+            userID = userId
+            println("User ID has been assigned to ${userID}")
+        }
+
+        println("Fetching information for ${userID}")
+
+        if (userID != null) {
             Firebase.firestore.collection("users")
-                .document(userId)
+                .document(userID)
                 .collection("communities")
                 .get()
                 .addOnSuccessListener { documents ->
                     val communityIds = documents.map { it.id }
                     fetchCommunityDetails(communityIds)
+                    println("NUMBER OF IDS FOUND IS ${communityIds.size}")
+                    for(id in communityIds) {
+                        println("ID: ${id}")
+                    }
                 }
         }
+
     }
 
 
@@ -469,30 +678,37 @@ class UserViewModel : ViewModel() {
 //    }
 
 
-    fun fetchPointsForCommunity(communityID: String, onResult: (Int?) -> Unit) {
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            val userID = currentUser.uid
+    fun fetchPointsForCommunity(communityID: String, userId: String, onResult: (Int?) -> Unit) {
 
-            viewModelScope.launch {
-                try {
-                    println("Fetching points for community: $communityID")
 
-                    val document = db.collection("users").document(userID)
-                        .collection("communities").document(communityID).get().await()
+        var userID: String = ""
 
-                    val userCommunity = document.toObject(UserCommunity::class.java)
+        if(userId == "") {
+            userID = auth.currentUser?.uid.toString()
+        } else {
+            userID = userId
+        }
 
-                    val points = userCommunity?.points
-                    pointsForCommunity.value = points
+        println("Checking points for user ${userID}")
 
-                    println("Fetched points: $points")
-                    onResult(points)
-                } catch (e: Exception) {
-                    println("Error fetching points: ${e.message}")
-                    pointsForCommunity.value = null
-                    onResult(null)
-                }
+        viewModelScope.launch {
+            try {
+                println("Fetching points for community: $communityID")
+
+                val document = db.collection("users").document(userID)
+                    .collection("communities").document(communityID).get().await()
+
+                val userCommunity = document.toObject(UserCommunity::class.java)
+
+                val points = userCommunity?.points
+                pointsForCommunity.value = points
+
+                println("Fetched points: $points")
+                onResult(points)
+            } catch (e: Exception) {
+                println("Error fetching points: ${e.message}")
+                pointsForCommunity.value = null
+                onResult(null)
             }
         }
     }
@@ -526,30 +742,34 @@ class UserViewModel : ViewModel() {
     }
 
 
-    fun fetchConsistencyForCommunity(communityID: String, onResult: (Float?) -> Unit) {
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            val userID = currentUser.uid
+    fun fetchConsistencyForCommunity(communityID: String, userId: String, onResult: (Float?) -> Unit) {
+        var userID: String = ""
 
-            viewModelScope.launch {
-                try {
-                    println("Fetching consistency rating for community: $communityID")
+        if(userId == "") {
+            userID = auth.currentUser?.uid.toString()
+        } else {
+            userID = userId
+        }
 
-                    val document = db.collection("users").document(userID)
-                        .collection("communities").document(communityID).get().await()
 
-                    val userCommunity = document.toObject(UserCommunity::class.java)
+        viewModelScope.launch {
+            try {
+                println("Fetching consistency rating for community: $communityID")
 
-                    val consistency = userCommunity?.consistency
-                    consistencyForCommunity.value = consistency
+                val document = db.collection("users").document(userID)
+                    .collection("communities").document(communityID).get().await()
 
-                    println("Fetched streak: $consistency")
-                    onResult(consistency)
-                } catch (e: Exception) {
-                    println("Error fetching streak: ${e.message}")
-                    streakForCommunity.value = null
-                    onResult(null)
-                }
+                val userCommunity = document.toObject(UserCommunity::class.java)
+
+                val consistency = userCommunity?.consistency
+                consistencyForCommunity.value = consistency
+
+                println("Fetched streak: $consistency")
+                onResult(consistency)
+            } catch (e: Exception) {
+                println("Error fetching streak: ${e.message}")
+                streakForCommunity.value = null
+                onResult(null)
             }
         }
     }
