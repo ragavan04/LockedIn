@@ -1,5 +1,6 @@
 package com.example.lockedin
 
+import Steps
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
@@ -95,6 +96,15 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
                 if (communityId != null) {
                     viewCommunity(modifier, navController, authViewModel, userViewModel, communityViewModel, communityId = communityId)
                 }
+            }
+            composable("welcome"){
+                Welcome(modifier, navController, authViewModel, userViewModel)
+            }
+            composable("offers"){
+                Offers(modifier, navController, authViewModel, userViewModel)
+            }
+            composable("steps"){
+                Steps(modifier, navController, authViewModel, userViewModel)
             }
         })
     }
