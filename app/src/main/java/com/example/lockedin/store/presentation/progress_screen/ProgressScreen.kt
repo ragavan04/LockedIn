@@ -87,16 +87,18 @@ fun ProgressScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold
             )
 
             Text(
                 text = "${currentCommunity?.name}",
                 fontSize = 18.sp,
-                color = Color(0xFF9D19A9),
+                color = Color(0xFF007BFF),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
+                fontFamily = poppinsFontFamily,
                 textAlign = TextAlign.Center
             )
 
@@ -184,7 +186,7 @@ fun ProgressItemView(post: Post) {
                     text = convertTimestampToDate(post.timePosted.toString()),
                     color = Color.White,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.SemiBold
                 )
             }
 

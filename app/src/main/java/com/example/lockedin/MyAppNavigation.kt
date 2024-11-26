@@ -19,6 +19,8 @@ import com.example.lockedin.store.presentation.create_community_screen.CreateCom
 import com.example.lockedin.store.presentation.login_screen.LoginScreen
 import com.example.lockedin.store.presentation.view_users.ViewUsers
 import com.example.lockedin.store.presentation.edit_profile.EditProfile
+import com.example.lockedin.store.presentation.intro_pages.Offers
+import com.example.lockedin.store.presentation.intro_pages.Welcome
 import com.example.lockedin.store.presentation.view_user_profile.UserViewProfile
 import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
 import com.example.lockedin.store.presentation.signup_screen.SignupScreen

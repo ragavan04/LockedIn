@@ -114,7 +114,9 @@ fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
                     Button(onClick = {
                         authViewModel.signout()
                     },
-                        colors = ButtonDefaults.buttonColors(Purple500),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF007BFF),
+                            contentColor = Color.White),
                         shape = RoundedCornerShape(24.dp),
                         modifier = Modifier
                             .height(40.dp)
@@ -237,7 +239,10 @@ fun EditProfileButton(navController: NavController) {
         onClick = {
             navController.navigate("edit_profile")
         },
-        colors = ButtonDefaults.buttonColors(Purple500),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFF007BFF),
+            contentColor = Color.White
+        ),
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .height(40.dp)

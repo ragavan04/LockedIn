@@ -88,11 +88,11 @@ fun MyProgressScreen(modifier: Modifier = Modifier, navController: NavController
                 text = "My Progress",
                 fontSize = 36.sp,
                 color = Color.White,
-                // fontFamily = poppinsFontFamily,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp, top = 24.dp),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -172,7 +172,7 @@ fun ExpandableBanner(
                 text = community.name,
                 color = Color.White,
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Normal,
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 16.dp)
@@ -193,7 +193,7 @@ fun ExpandableBanner(
                         navController.navigate("ProgressScreen/${communityId}")
                     },
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF9D19A9),
+                        containerColor = Color(0xFF007BFF),
                         contentColor = Color.White
                     ),
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
