@@ -280,7 +280,7 @@ fun CommunityItemView(item: CommunityItem, navController: NavController, userVie
                         navController.navigate("viewCommunity/${item.communityId}")
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF007BFF), // Button color
+                        containerColor = Color(0xFF007BFF),
                         contentColor = Color.White
                     ),
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp), // Smaller button padding
@@ -288,7 +288,7 @@ fun CommunityItemView(item: CommunityItem, navController: NavController, userVie
                         .height(30.dp) // Smaller height for the button
                         .clip(RoundedCornerShape(8.dp)) // Rounded edges
                 ) {
-                    Text("View", fontSize = 12.sp) // Smaller font size
+                    Text("View", fontSize = 12.sp, color = Color.White) // Smaller font size
                 }
             }
 

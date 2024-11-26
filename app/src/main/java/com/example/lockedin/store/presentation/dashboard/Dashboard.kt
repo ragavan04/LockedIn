@@ -201,7 +201,7 @@ fun PillButton(text: String, isSelected: Boolean) {
     Button(
         onClick = { /* Handle click */ },
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) Color.Blue else Color.Gray,
+            containerColor = if (isSelected) Color(0xFF007BFF) else Color.Gray,
             contentColor = Color.White
         ),
         shape = RoundedCornerShape(50)
@@ -271,7 +271,7 @@ fun PercentageBar(percentage: Float) {
 
 @Composable
 fun CommunitiesSection(communityList: List<Community>, navController: NavController) {
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(modifier = Modifier.padding(0.dp)) {
         Text(
             text = "Communities",
             fontSize = 24.sp,
