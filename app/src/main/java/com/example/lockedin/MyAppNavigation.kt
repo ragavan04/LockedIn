@@ -1,6 +1,8 @@
 package com.example.lockedin
 
 import Steps
+import com.example.lockedin.store.presentation.intro_pages.Welcome
+import com.example.lockedin.store.presentation.intro_pages.Offers
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState

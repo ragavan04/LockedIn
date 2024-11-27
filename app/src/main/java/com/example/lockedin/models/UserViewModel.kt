@@ -95,40 +95,101 @@ class UserViewModel : ViewModel() {
 
 
 
+    // fun joinUserCommunityOld(communityID: String, context: Context) {
+    //     val currentUser = auth.currentUser
+    //     if (currentUser != null) {
+    //         val userID = currentUser.uid
+
+    //         val userCommunity = hashMapOf(
+    //             "communityID" to communityID,
+    //             "points" to 0,
+    //             "streak" to 0,
+    //             "consistency" to 0
+    //         )
+
+    //         //updatePoints(communityID, 0)
+
+    //         db.collection("users").document(userID)
+    //             .collection("communities").document(communityID).set(userCommunity, SetOptions.merge())
+    //             .addOnSuccessListener {
+    //                fetchCommunityTime(communityID){notificationTime, communityName ->
+    //                    if (notificationTime != null && communityName != null){
+    //                        val delay = calculateNotificationDelay(notificationTime)
+    //                        if (delay > 0){
+    //                            scheduleCommunityNotification(
+    //                                context = context,
+    //                                delayMillis = delay,
+    //                                communityName = communityName,
+    //                            )
+    //                        }
+    //                    }
+    //                }
+    //             }
+    //             .addOnFailureListener { e ->
+    //                 println("Error storing user: $e")
+    //             }
+
+    //     }
+    // }
+
     fun joinUserCommunity(communityID: String, context: Context) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             val userID = currentUser.uid
-
+    
             val userCommunity = hashMapOf(
                 "communityID" to communityID,
                 "points" to 0,
                 "streak" to 0,
                 "consistency" to 0
             )
-
-            //updatePoints(communityID, 0)
-
+    
             db.collection("users").document(userID)
                 .collection("communities").document(communityID).set(userCommunity, SetOptions.merge())
                 .addOnSuccessListener {
-                   fetchCommunityTime(communityID){notificationTime, communityName ->
-                       if (notificationTime != null && communityName != null){
-                           val delay = calculateNotificationDelay(notificationTime)
-                           if (delay > 0){
-                               scheduleCommunityNotification(
-                                   context = context,
-                                   delayMillis = delay,
-                                   communityName = communityName,
-                               )
-                           }
-                       }
-                   }
+                    // Add user to the community's members sub-collection
+                    val member = hashMapOf(
+                        "userId" to userID,
+                        "username" to currentUser.displayName, // Doesn't make sense to include name here as it can change
+                        "profilePic" to currentUser.photoUrl,
+                        "role" to "member",
+                        "joinedAt" to System.currentTimeMillis()
+                    )
+                    db.collection("communities").document(communityID)
+                        .collection("members").document(userID)
+                        .set(member)
+                        .addOnSuccessListener {
+                            println("User added to community members.")
+                            fetchCommunityTime(communityID) { notificationTime, communityName ->
+                                if (notificationTime != null && communityName != null) {
+                                    val delay = calculateNotificationDelay(notificationTime)
+                                    if (delay > 0) {
+                                        scheduleCommunityNotification(
+                                            context = context,
+                                            delayMillis = delay,
+                                            communityName = communityName,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            println("Error adding user to community members: $e")
+                            // Rollback: Remove the community from the user's list
+                            db.collection("users").document(userID)
+                                .collection("communities").document(communityID)
+                                .delete()
+                                .addOnSuccessListener {
+                                    println("Rolled back: Community removed from user's list.")
+                                }
+                                .addOnFailureListener { rollbackError ->
+                                    println("Error during rollback: $rollbackError")
+                                }
+                        }
                 }
                 .addOnFailureListener { e ->
                     println("Error storing user: $e")
                 }
-
         }
     }
 
