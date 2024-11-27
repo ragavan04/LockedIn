@@ -1,72 +1,73 @@
 package com.example.lockedin.store.presentation.create_community_screen
 
-import NotificationWorker
+import android.app.TimePickerDialog
+import android.content.Context
 import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material.*
-import androidx.compose.material3.Button
-import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.example.lockedin.BottomNavigationBar
-import com.example.lockedin.R
 import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
 import com.example.lockedin.models.UserViewModel
-import android.app.TimePickerDialog
-import android.content.Context
-import android.util.Log
-import android.widget.Toast
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
-import java.text.SimpleDateFormat
+import com.example.lockedin.store.presentation.signup_screen.Purple500
+import com.example.lockedin.store.presentation.upload_post.uploadImageToFirebase
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 
 @Composable
-fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel, communityViewModel: CommunityViewModel, userViewModel: UserViewModel) {
+fun CreateCommunityScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    authViewModel: AuthViewModel,
+    communityViewModel: CommunityViewModel,
+    userViewModel: UserViewModel
+) {
 
     val context = LocalContext.current
     var communityName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var communityPicture by remember { mutableStateOf("") }
     var notificationTime by remember { mutableStateOf("") }
-    var maxDescriptionLength = 100
+    val maxDescriptionLength = 100
+
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+    }
 
 
     val authState = authViewModel.authState.observeAsState()
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(authState.value) {
-        when(authState.value){
+        when (authState.value) {
             is AuthState.Unauthenticated -> navController.navigate("login")
             else -> Unit
         }
@@ -78,7 +79,7 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF131313))
+                .background(Color.Black)
                 .padding(top = 40.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -128,12 +129,12 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
 
                 TextField(
                     value = description,
-                    onValueChange = { 
+                    onValueChange = {
                         if (it.length <= maxDescriptionLength) {
-                            description = it 
+                            description = it
                         }
                     },
-                    label = { Text("Description") } ,
+                    label = { Text("Description") },
                     modifier = Modifier
                         .width(370.dp)
                         .height(80.dp)
@@ -151,23 +152,33 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                TextField(
-                    value = communityPicture,
-                    onValueChange = { communityPicture = it },
-                    label = { Text("Community Picture URL") },
+                Button(
+                    onClick = {
+                        launcher.launch("image/*")
+                    },
                     modifier = Modifier
-                        .width(370.dp)
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(12.dp)) // Rounded corners
-                        .background(Color(0xFFFFFFFF)), // Darker TextField background
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color(0xFF333333),
-                        textColor = Color.White,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        unfocusedLabelColor = Color.White,
-                        focusedIndicatorColor = Color.Transparent,
-                        focusedLabelColor = Color.White,
+                        .width(200.dp)
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(30.dp)),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.White,
+                        contentColor = Color(0xFF333333),
                     )
+                ) {
+
+                    Text("Choose Image")
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = "Profile Image",
+                    modifier = Modifier
+                        .size(120.dp) // Increased size to make the profile image larger
+                        .clip(CircleShape)
+                        .border(2.dp, Color.Gray, CircleShape),
+                    contentScale = ContentScale.Crop
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -209,19 +220,29 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
                 Spacer(modifier = Modifier.height(20.dp))
 
 
-                Button(onClick = {
-                    communityViewModel.createCommunity(communityName, description, communityPicture, notificationTime, userViewModel, context)
-                    navController.navigate("community_screen")
+                Button(
+                    onClick = {
+                        uploadImageToFirebase(imageUri, context, {communityPicture -> communityViewModel.createCommunity(
+                            communityName,
+                            description,
+                            communityPicture,
+                            notificationTime,
+                            userViewModel,
+                            context
+                        )
+                            navController.navigate("community_screen")})
 
-                },
+
+                    },
                     modifier = Modifier
                         .width(100.dp)
                         .height(50.dp)
                         .clip(RoundedCornerShape(30.dp)),
                     colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.White,
-                        contentColor = Color(0xFF333333),
+                        backgroundColor = Color(0xFF007BFF),
+                        contentColor = Color.White,
                     )
+
 
                 ) {
                     Text("Create")
@@ -233,3 +254,4 @@ fun CreateCommunityScreen(modifier: Modifier = Modifier, navController: NavContr
     }
 
 }
+

@@ -41,7 +41,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
 import com.example.lockedin.models.*
-import com.example.lockedin.store.presentation.signup_screen.uploadProfileImageToFirebase
+import com.example.lockedin.store.presentation.upload_post.uploadImageToFirebase
 import com.example.lockedin.ui.theme.poppinsFontFamily
 import kotlinx.coroutines.Dispatchers
 import java.text.SimpleDateFormat
@@ -228,14 +228,14 @@ fun EditProfile(
                 onClick = {
                     userViewModel.updateUsername(username.value)
                     if (!removeProfilePic &&  imageUri != null) {
-                        uploadProfileImageToFirebase(imageUri, context) { pfpUrl ->
+                        uploadImageToFirebase(imageUri, context) { pfpUrl ->
                             userViewModel.updateProfilePicture(pfpUrl)
                         }
                     }
 
                     if(removeProfilePic) {
                         imageUri = null
-                        uploadProfileImageToFirebase(imageUri, context) { pfpUrl ->
+                        uploadImageToFirebase(imageUri, context) { pfpUrl ->
                             userViewModel.updateProfilePicture(pfpUrl)
                         }
                     }
