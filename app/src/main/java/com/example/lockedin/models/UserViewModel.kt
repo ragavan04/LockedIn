@@ -150,7 +150,7 @@ class UserViewModel : ViewModel() {
                     // Add user to the community's members sub-collection
                     val member = hashMapOf(
                         "userId" to userID,
-//                        "username" to currentUser.displayName, // Doesn't make sense to include name here as it can change
+                        "username" to currentUser.displayName, // Doesn't make sense to include name here as it can change
                         "profilePic" to currentUser.photoUrl,
                         "role" to "member",
                         "joinedAt" to System.currentTimeMillis()
