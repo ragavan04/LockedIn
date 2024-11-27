@@ -85,7 +85,7 @@ fun DashboardScreen(
         ) {
             HelloMessage(username)
             Spacer(modifier = Modifier.height(16.dp))
-            OverviewProgressToggle()
+//            OverviewProgressToggle() // Removed as no use for these buttons
             Spacer(modifier = Modifier.height(16.dp))
             ConsistencyRating(localConsistency)
             Spacer(modifier = Modifier.height(16.dp))
@@ -190,18 +190,19 @@ fun Other (username: String) {
     }
 }
 
-@Composable
-fun OverviewProgressToggle() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        PillButton("Overview", true)
-        PillButton("Progress", false)
-    }
-}
+// Removed as no use for these buttons
+//@Composable
+//fun OverviewProgressToggle() {
+//    Row(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(horizontal = 16.dp),
+//        horizontalArrangement = Arrangement.SpaceEvenly
+//    ) {
+//        PillButton("Overview", true)
+//        PillButton("Progress", false)
+//    }
+//}
 
 @Composable
 fun PillButton(text: String, isSelected: Boolean) {
