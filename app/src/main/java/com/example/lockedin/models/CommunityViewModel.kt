@@ -370,6 +370,31 @@ class CommunityViewModel : ViewModel() {
             .addOnFailureListener { exception -> onFailure(exception) }
     }
 
+    fun updateCommunity(
+        communityId: String,
+        name: String,
+        description: String,
+        notificationTime: String,
+        imageUrl: String
+    ) {
+        val updates = mapOf(
+            "name" to name,
+            "description" to description,
+            "notificationTime" to notificationTime,
+            "imageUrl" to imageUrl
+        )
+
+        db.collection("communities").document(communityId)
+            .update(updates)
+            .addOnSuccessListener {
+                println("Community updated successfully")
+            }
+            .addOnFailureListener { e ->
+                println("Error updating community: ${e.message}")
+            }
+    }
+
+
 
 
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -85,7 +86,7 @@ fun CommunityHeader(
     community: Community, navController: NavController, communityId: String
 ) {
 
-    val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
+    var showMenu by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -121,72 +122,23 @@ fun CommunityHeader(
                 textAlign = TextAlign.Center
             )
 
-            // Row for right-aligned buttons (Progress and Create Post)
-            Row(
-                modifier = Modifier.align(Alignment.CenterEnd),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                IconButton(
-                    onClick = { navController.navigate("ViewUsers/$communityId") },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.view_icon),
-                        contentDescription = "Progress",
-                        modifier = Modifier.size(24.dp)
-                    )
+            Row(modifier = Modifier.align(Alignment.CenterEnd)) {
+                IconButton(onClick = { showMenu = !showMenu }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "More options", tint = Color.White)
                 }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // Statistics IconButton
-                IconButton(
-                    onClick = { /* Leave blank for navigation */ },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_progress),
-                        contentDescription = "Progress",
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // Create Post IconButton
-                IconButton(
-                    onClick = {
-                        if (cameraPermissionState.status.isGranted) {
-                            navController.navigate("UploadPost/$communityId")
-                        } else {
-                            cameraPermissionState.launchPermissionRequest()
-                        }
-                              },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_newpost),
-                        contentDescription = "Create Post",
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                OverflowMenu(
+                    showMenu = showMenu,
+                    onDismiss = { showMenu = false },
+                    navController = navController,
+                    communityId = communityId,
+                    communityOwnerId = community.ownerId
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(5.dp))
 
-        // Show feedback if the permission is denied and rationale should be shown
-        if (cameraPermissionState.status.shouldShowRationale) {
-            Text(
-                text = "Camera permission is required to create a post. Please grant the permission.",
-                color = Color.Red,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            )
-        }
+
 
         // Community Description
         Text(
@@ -408,3 +360,75 @@ fun formatEpochToRelativeTime(epochMillis: Long): String {
         DateUtils.MINUTE_IN_MILLIS
     ).toString()
 }
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun OverflowMenu(showMenu: Boolean, onDismiss: () -> Unit, navController: NavController, communityId: String, communityOwnerId: String) {
+    val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+    DropdownMenu(
+        expanded = showMenu,
+        onDismissRequest = { onDismiss() }
+    ) {
+        DropdownMenuItem(
+            onClick = {
+                navController.navigate("ViewUsers/$communityId")
+                onDismiss()
+            }
+        ) {
+            Text("View members", style = MaterialTheme.typography.bodyMedium)
+        }
+
+        Divider()
+
+        DropdownMenuItem(
+            onClick = {
+                navController.navigate("ProgressScreen/${communityId}")
+                onDismiss()
+            }
+        ) {
+            Text("Progress", style = MaterialTheme.typography.bodyMedium)
+        }
+
+        Divider()
+
+        DropdownMenuItem(
+            onClick = {
+                if (cameraPermissionState.status.isGranted) {
+                    navController.navigate("UploadPost/$communityId")
+                } else {
+                    cameraPermissionState.launchPermissionRequest()
+                }
+                onDismiss()
+            }
+        ) {
+            Text("Post", style = MaterialTheme.typography.bodyMedium)
+        }
+
+        if (currentUserId == communityOwnerId) {
+            DropdownMenuItem(
+                onClick = {
+                    navController.navigate("OwnerSettings/${communityId}")
+                    onDismiss()
+                }
+            ) {
+                Text("Owner Settings", style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+
+        // Show feedback if the permission is denied and rationale should be shown
+        if (cameraPermissionState.status.shouldShowRationale) {
+            Text(
+                text = "Camera permission is required to create a post. Please grant the permission.",
+                color = Color.Red,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            )
+        }
+
+    }
+}
+
