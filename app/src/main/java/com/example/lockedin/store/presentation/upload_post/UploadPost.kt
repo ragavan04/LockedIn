@@ -3,6 +3,8 @@ package com.example.lockedin.store.presentation.upload_post
 import NotificationWorker
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
@@ -180,6 +182,31 @@ fun uploadImageToFirebaseStorage(
         }
 }
 
+
+fun uploadImageToFirebase(uri: Uri?, context: Context, onResult: (String) -> Unit){
+    val storage = Firebase.storage
+    val storageRef = storage.reference
+    val uniqueID = UUID.randomUUID().toString()
+    val imagesRef = storageRef.child("images/$uniqueID.jpg")
+
+    var returnUrl: String = "nothing"
+
+    val byteArray: ByteArray? = uri?.let { context.contentResolver.openInputStream(it)?.use{it.readBytes()} }
+
+    if (byteArray != null) {
+        imagesRef.putBytes(byteArray).addOnSuccessListener {
+            imagesRef.downloadUrl.addOnSuccessListener { uri ->
+                returnUrl  = uri.toString()
+                onResult(returnUrl)
+                Log.d("THIS IS WHAT ITS SUPPOSED TO BE", returnUrl)
+            }
+        }.addOnFailureListener({
+            Log.d("ERROR FROM SIGN UP",  "IMAGE COULD NOT BE UPLOADED")
+        })
+    } else {
+        onResult("error")
+    }
+}
 
 
 fun saveImageUrlToCommunityPosts(

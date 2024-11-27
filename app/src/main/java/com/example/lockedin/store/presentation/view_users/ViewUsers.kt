@@ -45,7 +45,6 @@ import coil3.compose.AsyncImage
 import com.example.lockedin.models.*
 import com.example.lockedin.store.presentation.community_feed.CommunityItem
 import com.example.lockedin.store.presentation.community_posts.CommunityHeader
-import com.example.lockedin.store.presentation.signup_screen.uploadProfileImageToFirebase
 import com.example.lockedin.ui.theme.poppinsFontFamily
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth

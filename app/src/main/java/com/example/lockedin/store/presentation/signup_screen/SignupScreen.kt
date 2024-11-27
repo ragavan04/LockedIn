@@ -34,6 +34,7 @@ import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.UserViewModel
 import com.example.lockedin.store.presentation.upload_post.saveImageUrlToCommunityPosts
+import com.example.lockedin.store.presentation.upload_post.uploadImageToFirebase
 import com.example.lockedin.store.presentation.upload_post.uploadImageToFirebaseStorage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.ktx.Firebase
@@ -169,16 +170,10 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
 
 
         Button(onClick = {
-             uploadProfileImageToFirebase(imageUri, context, {pfpUrl ->
+             uploadImageToFirebase(imageUri, context, {pfpUrl ->
 
                  authViewModel.signup(email, password, username, pfpUrl, userViewModel)
              })
-//            if (authState.value is AuthState.Authenticated) {
-//                navController.navigate("community_feed")
-//            }
-
-
-
 
         }, colors = ButtonDefaults.buttonColors(backgroundColor = Purple500)) {
             Text("Register")
@@ -198,29 +193,4 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
 }
 
 
-fun uploadProfileImageToFirebase(uri: Uri?, context: Context, onResult: (String) -> Unit){
-    val storage = Firebase.storage
-    val storageRef = storage.reference
-    val uniqueID = UUID.randomUUID().toString()
-    val imagesRef = storageRef.child("images/$uniqueID.jpg")
 
-    var returnUrl: String = "nothing"
-
-    val byteArray: ByteArray? = uri?.let { context.contentResolver.openInputStream(it)?.use{it.readBytes()} }
-
-    if (byteArray != null) {
-        imagesRef.putBytes(byteArray).addOnSuccessListener {
-            imagesRef.downloadUrl.addOnSuccessListener { uri ->
-                returnUrl  = uri.toString()
-                onResult(returnUrl)
-                Log.d("THIS IS WHAT ITS SUPPOSED TO BE", returnUrl)
-            }
-        }.addOnFailureListener({
-            Log.d("ERROR FROM SIGN UP",  "IMAGE COULD NOT BE UPLOADED")
-        })
-    } else {
-        onResult("error")
-    }
-
-
-}
