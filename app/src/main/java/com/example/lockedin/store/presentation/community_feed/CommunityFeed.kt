@@ -28,14 +28,37 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.lockedin.MyApp
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import com.example.lockedin.BottomNavigationBar
 import com.example.lockedin.R
 import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
+import com.example.lockedin.store.presentation.progress_screen.ProgressItemView
+import com.example.lockedin.store.presentation.util.components.LoadingDialog
+import org.checkerframework.common.subtyping.qual.Bottom
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.lockedin.store.presentation.community_posts.CommunityPosts
 import com.example.lockedin.models.UserViewModel
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
