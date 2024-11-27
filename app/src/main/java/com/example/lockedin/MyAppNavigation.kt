@@ -21,6 +21,7 @@ import com.example.lockedin.store.presentation.view_users.ViewUsers
 import com.example.lockedin.store.presentation.edit_profile.EditProfile
 import com.example.lockedin.store.presentation.intro_pages.Offers
 import com.example.lockedin.store.presentation.intro_pages.Welcome
+import com.example.lockedin.store.presentation.owner_settings.OwnerSettings
 import com.example.lockedin.store.presentation.view_user_profile.UserViewProfile
 import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
 import com.example.lockedin.store.presentation.signup_screen.SignupScreen
@@ -107,6 +108,12 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
             }
             composable("steps"){
                 Steps(modifier, navController, authViewModel, userViewModel)
+            }
+            composable("OwnerSettings/{communityId}"){ backStackEntry ->
+                val communityId = backStackEntry.arguments?.getString("communityId")
+                if (communityId != null) {
+                    OwnerSettings(modifier, navController, authViewModel, communityViewModel, communityId = communityId)
+                }
             }
         })
     }
