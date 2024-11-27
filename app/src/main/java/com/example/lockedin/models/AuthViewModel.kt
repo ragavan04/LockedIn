@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -34,7 +35,7 @@ class AuthViewModel : ViewModel(){
         }
     }
 
-    fun login(email: String, password: String){
+    fun login(email: String, password: String, onResult:  (Boolean) -> Unit){
         if (email.isEmpty() || password.isEmpty()){
             _authState.value = AuthState.Error("Email or password can't be empty")
         }
@@ -43,13 +44,15 @@ class AuthViewModel : ViewModel(){
             .addOnCompleteListener{ task ->
                 if (task.isSuccessful){
                     _authState.value = AuthState.Authenticated
+                    onResult(true)
                 } else {
                     _authState.value = AuthState.Error(task.exception?.message?: "Something went wrong")
+                    onResult(false)
                 }
             }
     }
 
-    fun signup(email: String, password: String, username: String, profilePicUrl: String, userViewModel: UserViewModel){
+    fun signup(email: String, password: String, username: String, profilePicUrl: String, userViewModel: UserViewModel, onResult: (Boolean) -> Unit){
         Log.d("username", username)
         val storage = Firebase.storage
         val storageRef = storage.reference
@@ -78,9 +81,11 @@ class AuthViewModel : ViewModel(){
                                 Log.d("USER PROFILE", "User profile updated.")
                             }
                     }
+                    onResult(true)
 
                 } else {
                     _authState.value = AuthState.Error(task.exception?.message?: "Something went wrong")
+                    onResult(false)
                 }
             }
 
