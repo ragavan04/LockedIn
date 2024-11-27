@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.lockedin.components.AlertDialogCustom
 import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.UserViewModel
@@ -44,7 +45,8 @@ import java.util.*
 
 
 
-val Purple500 = Color(0xFF6200EE)
+val LightBlue = Color(0xFF007BFF)
+val LightPurple = Color(0xFF8A2BE2)
 val BackgroundColor = Color.Black
 
 @Composable
@@ -54,6 +56,11 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
     var password by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+
+    var dialogMessage by remember { mutableStateOf("") }
+
+    val openAlertDialog = remember { mutableStateOf(false) }
+    var loading by remember { mutableStateOf(false) }
 
     val launcher  = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -152,11 +159,12 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
 
         Button(onClick = {
             launcher.launch("image/*")
-        }, colors = ButtonDefaults.buttonColors(backgroundColor = Purple500)) {
+        }, colors = ButtonDefaults.buttonColors(backgroundColor = LightBlue, contentColor = Color.White)) {
 
             Text("Choose Image")
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
 
         AsyncImage(
             model = imageUri,
@@ -169,16 +177,60 @@ fun SignupScreen(modifier: Modifier = Modifier, navController: NavController, au
         )
 
 
-        Button(onClick = {
-             uploadImageToFirebase(imageUri, context, {pfpUrl ->
+        Spacer(modifier = Modifier.height(16.dp))
 
-                 authViewModel.signup(email, password, username, pfpUrl, userViewModel)
-             })
+        if (!loading){
 
-        }, colors = ButtonDefaults.buttonColors(backgroundColor = Purple500)) {
-            Text("Register")
+            Button(
+                onClick = {
+                    loading = true
+                    if (email == "" || password == "" || username == "" || imageUri == null) {
+                        openAlertDialog.value =  true
+                        dialogMessage = "Please make sure all the fields are completed and none are blank."
+                    } else {
+                        openAlertDialog.value = false
+                        uploadImageToFirebase(imageUri, context, {pfpUrl ->
+
+                            authViewModel.signup(email, password, username, pfpUrl, userViewModel, {success ->
+                                if (!success) {
+                                    openAlertDialog.value = true
+                                    dialogMessage = "Oops! Something went wrong, please try again later."
+                                }
+                            })
+                        })
+                    }
+
+
+            },
+                colors = ButtonDefaults.buttonColors(backgroundColor = LightBlue, contentColor = Color.White),
+                enabled = !loading
+                ) {
+                Text("Register")
+            }
+        } else {
+            CircularProgressIndicator(
+                modifier = Modifier.width(45.dp),
+                color = com.example.lockedin.store.presentation.login_screen.LightBlue,
+            )
         }
 
+        when {
+            openAlertDialog.value -> {
+                AlertDialogCustom(
+                    onDismissRequest = {
+                        openAlertDialog.value = false
+                        loading = false
+                       },
+                    onConfirmation = {
+                        openAlertDialog.value = false
+                        loading = false
+                    },
+                    dialogTitle = "Oops! Something Went Wrong",
+                    dialogText = dialogMessage,
+                )
+            }
+
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 

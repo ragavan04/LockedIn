@@ -1,4 +1,4 @@
-package com.example.lockedin.store.presentation.dashboard
+    package com.example.lockedin.store.presentation.dashboard
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
@@ -31,11 +31,17 @@ import com.google.firebase.ktx.Firebase
 
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.LaunchedEffect
-import org.jetbrains.annotations.Async
 
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextDecoration
+import com.example.lockedin.store.presentation.signup_screen.LightBlue
+import com.example.lockedin.store.presentation.signup_screen.LightPurple
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun DashboardScreen(
     modifier: Modifier = Modifier,
@@ -153,10 +159,11 @@ fun HelloMessage(username: String) {
          .fillMaxWidth(),
    ) {
        Text(
-           text = "Hello\n$username",
+           text = "Hello,\n$username",
            fontSize = 54.sp,
            fontWeight = FontWeight.Bold,
            color = Color.White
+
 
        )
    }
@@ -201,7 +208,7 @@ fun PillButton(text: String, isSelected: Boolean) {
     Button(
         onClick = { /* Handle click */ },
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) Color(0xFF007BFF) else Color.Gray,
+            containerColor = if (isSelected) LightBlue else LightPurple,
             contentColor = Color.White
         ),
         shape = RoundedCornerShape(50)
@@ -215,7 +222,14 @@ fun ConsistencyRating(consistency: Float) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.DarkGray, RoundedCornerShape(16.dp))
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        LightBlue,
+                        LightPurple
+                    )
+                ),
+                RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         Text(
@@ -292,6 +306,7 @@ fun CommunitiesSection(communityList: List<Community>, navController: NavControl
 @Composable
 fun CommunityCard(community: Community, navController: NavController) {
     Card(
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
@@ -305,6 +320,7 @@ fun CommunityCard(community: Community, navController: NavController) {
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
+        AsyncImage(model = community.communityImage, contentDescription = "Community Image")
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.Center,

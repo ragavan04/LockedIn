@@ -1,9 +1,7 @@
 package com.example.lockedin.store.presentation.create_community_screen
 
 import android.app.TimePickerDialog
-import android.content.Context
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -32,10 +30,7 @@ import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
 import com.example.lockedin.models.UserViewModel
-import com.example.lockedin.store.presentation.signup_screen.Purple500
 import com.example.lockedin.store.presentation.upload_post.uploadImageToFirebase
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
 import java.util.*
 
 
