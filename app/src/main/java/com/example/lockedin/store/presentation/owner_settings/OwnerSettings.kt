@@ -1,6 +1,7 @@
 package com.example.lockedin.store.presentation.owner_settings
 
 import android.app.TimePickerDialog
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -201,6 +202,25 @@ fun OwnerSettings(
             // Update Button
             Button(
                 onClick = {
+                    // Validation checks
+                    if (communityName.isBlank()) {
+                        Toast.makeText(navController.context, "Please enter a community name.", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (communityDescription.isBlank()) {
+                        Toast.makeText(navController.context, "Please enter a description.", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (communityImage.isBlank()) {
+                        Toast.makeText(navController.context, "Please enter a valid picture URL.", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (notificationTime.isBlank()) {
+                        Toast.makeText(navController.context, "Please set a notification time.", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    // If all fields are valid, proceed with the update
                     communityViewModel.updateCommunity(
                         communityId = communityId,
                         name = communityName,
@@ -221,6 +241,7 @@ fun OwnerSettings(
             ) {
                 Text("Update")
             }
+
         }
     }
 }

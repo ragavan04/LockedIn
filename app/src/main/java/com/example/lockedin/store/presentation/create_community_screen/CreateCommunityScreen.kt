@@ -217,17 +217,36 @@ fun CreateCommunityScreen(
 
                 Button(
                     onClick = {
-                        uploadImageToFirebase(imageUri, context, {communityPicture -> communityViewModel.createCommunity(
-                            communityName,
-                            description,
-                            communityPicture,
-                            notificationTime,
-                            userViewModel,
-                            context
-                        )
-                            navController.navigate("community_screen")})
+                        // Validation checks
+                        if (communityName.isBlank()) {
+                            Toast.makeText(context, "Please enter a community name.", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (description.isBlank()) {
+                            Toast.makeText(context, "Please enter a description.", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (imageUri == null) {
+                            Toast.makeText(context, "Please choose an image.", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (notificationTime.isBlank()) {
+                            Toast.makeText(context, "Please set a notification time.", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
 
-
+                        // If all fields are complete, proceed with community creation
+                        uploadImageToFirebase(imageUri, context, { communityPicture ->
+                            communityViewModel.createCommunity(
+                                communityName,
+                                description,
+                                communityPicture,
+                                notificationTime,
+                                userViewModel,
+                                context
+                            )
+                            navController.navigate("community_screen")
+                        })
                     },
                     modifier = Modifier
                         .width(100.dp)
@@ -237,11 +256,10 @@ fun CreateCommunityScreen(
                         backgroundColor = Color(0xFF007BFF),
                         contentColor = Color.White,
                     )
-
-
                 ) {
                     Text("Create")
                 }
+
 
             }
         }
