@@ -890,10 +890,14 @@ class UserViewModel : ViewModel() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun convertToEST(currentTimeMillis: Long): Long {
-        val torontoZoneId = ZoneId.of("America/Toronto") // Correct time zone for Toronto
-        val utcInstant = Instant.ofEpochMilli(currentTimeMillis) // Convert to Instant
-        val torontoZonedDateTime = utcInstant.atZone(torontoZoneId) // Convert to ZonedDateTime in Toronto
-        return torontoZonedDateTime.toInstant().toEpochMilli() // Return as milliseconds
+        // Correct time zone for Toronto
+        val torontoZoneId = ZoneId.of("America/Toronto")
+        // Convert to Instant
+        val utcInstant = Instant.ofEpochMilli(currentTimeMillis)
+        // Convert to ZonedDateTime in Toronto
+        val torontoZonedDateTime = utcInstant.atZone(torontoZoneId)
+
+        return torontoZonedDateTime.toInstant().toEpochMilli()
     }
 
     fun timeDifference(postTime: Long, notificationTimeMillis: Long): Int {
@@ -961,6 +965,8 @@ class UserViewModel : ViewModel() {
                     // Update Firestore with the new points total
                     db.collection("users").document(userId).collection("communities")
                         .document(communityId).update("points", totalPoints)
+
+                    addConsistencyForPost(postId, communityId, userId, totalPoints)
                 }
             } catch (e: Exception) {
                 println("Error adding points: ${e.message}")
@@ -979,7 +985,7 @@ class UserViewModel : ViewModel() {
                 fetchStreakForCommunity(communityId) { streak ->
                     if (streak == null) {
                         println("Points not found, defaulting to 0")
-                        pointsForCommunity.value = 0
+                        streakForCommunity.value = 0
                     }
 
                     val localStreak = streak ?: 0 // Use the fetched points or default to 0
@@ -1017,6 +1023,56 @@ class UserViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 println("Error adding streak: ${e.message}")
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun addConsistencyForPost(postId: String, communityId: String, userId: String, points: Int) {
+        viewModelScope.launch {
+            try {
+                val member = db.collection("communities").document(communityId).collection("members")
+                    .document(userId).get().await()
+
+                    val joinedTime = member.getLong("joinedAt") ?: 0L
+                    val currentTime = System.currentTimeMillis()
+
+
+                    val joinedAtEST = convertToEST(joinedTime)
+                    val currentTimeEST = convertToEST(currentTime)
+
+                    var daysJoined = (timeDifference(joinedAtEST, currentTimeEST) / (60 * 24))
+
+                    if(daysJoined == 0) {
+                        daysJoined = 1
+                    }
+
+                    var localPoints = points;
+
+                    println("The user joined at ${joinedAtEST}")
+                    println("The current time is ${currentTimeEST}")
+                    println("The number of days the user joined is ${daysJoined}")
+
+
+
+                    val maxPoints = daysJoined * 100
+                    val consistencyRating = (localPoints.toFloat() / maxPoints) * 100
+
+
+
+                    println("The local points is ${localPoints.toInt()}")
+                    println("The max points is ${maxPoints}")
+
+
+
+                    println("New rating: ${consistencyRating.toInt()}%")
+
+                    // Update Firestore with the new points total
+                    db.collection("users").document(userId).collection("communities")
+                        .document(communityId).update("consistency", consistencyRating.toInt())
+
+            } catch (e: Exception) {
+                println("Error adding points: ${e.message}")
             }
         }
     }
