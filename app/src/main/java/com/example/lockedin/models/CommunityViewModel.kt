@@ -76,10 +76,11 @@ class CommunityViewModel : ViewModel() {
                     val member = hashMapOf(
                         "userId" to currentUser.uid,
                         "role" to "owner",  // Define them as the owner
-                        "username" to "",
-                        "profilePic" to "",
+//                        "username" to "",
+//                        "profilePic" to "",
                         "joinedAt" to System.currentTimeMillis()
                     )
+                    println(member)
 
                     db.collection("communities").document(communityId)
                         .collection("members").document(currentUser.uid)
@@ -90,14 +91,8 @@ class CommunityViewModel : ViewModel() {
                         .addOnFailureListener { e ->
                             println("Error adding community owner: $e")
                         }
-
                     userViewModel.addUsernameToMembers(communityId,currentUser.uid)
                     userViewModel.addProfilePicToMembers(communityId, currentUser.uid)
-
-
-
-
-
 
                 }
                 .addOnFailureListener { e ->
@@ -395,6 +390,145 @@ class CommunityViewModel : ViewModel() {
     }
 
 
+    fun fetchUserRole(communityId: String, userId: String, onResult: (String?) -> Unit) {
+        db.collection("communities").document(communityId)
+            .collection("members").document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val role = document.getString("role")
+                    val name = document.getString("username")
+                    println("Fetched role: $role for user $name ($userId) in community $communityId")
+                    onResult(role)
+                } else {
+                    println("No role found for user $userId in community $communityId")
+                    onResult(null)
+                }
+            }
+            .addOnFailureListener { e ->
+                println("Error fetching user role: ${e.message}")
+                onResult(null)
+            }
+    }
 
+    // fun fetchUserRole(communityId: String, userId: String): String? {
+    //     var role: String? = null
+    //     viewModelScope.launch {
+    //         try {
+    //             val document = db.collection("communities")
+    //                 .document(communityId)
+    //                 .collection("members")
+    //                 .document(userId)
+    //                 .get()
+    //                 .await()
+                
+    //             if (document.exists()) {
+    //                 role = document.getString("role")
+    //                 println("Fetched role: $role for user $userId in community $communityId")
+    //             } else {
+    //                 println("No role found for user $userId in community $communityId")
+    //             }
+    //         } catch (e: Exception) {
+    //             println("Error fetching user role: ${e.message}")
+    //         }
+    //     }
+    //     return role
+    // }
+
+    fun removeUserFromCommunity(communityId: String, userId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        // Fetch the current member data before removal
+        db.collection("communities").document(communityId)
+            .collection("members").document(userId)
+            .get()
+            .addOnSuccessListener { documentSnapshot ->
+                val memberData = documentSnapshot.data
+
+                // Proceed to remove user from community's members
+                db.collection("communities").document(communityId)
+                    .collection("members").document(userId)
+                    .delete()
+                    .addOnSuccessListener {
+                        println("User removed from community members.")
+                        // Remove community from user's list of communities
+                        db.collection("users").document(userId)
+                            .collection("communities").document(communityId)
+                            .delete()
+                            .addOnSuccessListener {
+                                println("Community removed from user's list.")
+                                onSuccess()
+                            }
+                            .addOnFailureListener { e ->
+                                println("Error removing community from user's list: ${e.message}")
+                                // Rollback: Re-add user to community's members using stored data
+                                if (memberData != null) {
+                                    db.collection("communities").document(communityId)
+                                        .collection("members").document(userId)
+                                        .set(memberData)
+                                        .addOnSuccessListener {
+                                            println("Rollback successful: User re-added to community members.")
+                                        }
+                                        .addOnFailureListener { rollbackError ->
+                                            println("Error during rollback: ${rollbackError.message}")
+                                        }
+                                }
+                                onFailure(e)
+                            }
+                    }
+                    .addOnFailureListener { e ->
+                        println("Error removing user from community: ${e.message}")
+                        onFailure(e)
+                    }
+            }
+            .addOnFailureListener { e ->
+                println("Error fetching member data: ${e.message}")
+                onFailure(e)
+            }
+    }
+
+    fun blockUserFromCommunity(communityId: String, userId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        removeUserFromCommunity(communityId, userId, {
+            // Add community to user's blocked list
+            db.collection("users").document(userId)
+                .collection("blockedCommunities").document(communityId)
+                .set(mapOf("blockedAt" to System.currentTimeMillis()))
+                .addOnSuccessListener {
+                    println("Community added to user's blocked list.")
+                    onSuccess()
+                }
+                .addOnFailureListener { e ->
+                    println("Error blocking user from community: ${e.message}")
+                    // Rollback: Re-add user to community's members and user's communities using stored data
+                    db.collection("communities").document(communityId)
+                        .collection("members").document(userId)
+                        .get()
+                        .addOnSuccessListener { documentSnapshot ->
+                            val memberData = documentSnapshot.data
+                            if (memberData != null) {
+                                db.collection("communities").document(communityId)
+                                    .collection("members").document(userId)
+                                    .set(memberData)
+                                    .addOnSuccessListener {
+                                        db.collection("users").document(userId)
+                                            .collection("communities").document(communityId)
+                                            .set(mapOf("communityID" to communityId, "points" to 0, "streak" to 0, "consistency" to 0))
+                                            .addOnSuccessListener {
+                                                println("Rollback successful: User re-added to community members and user's communities.")
+                                            }
+                                            .addOnFailureListener { rollbackError ->
+                                                println("Error during rollback: ${rollbackError.message}")
+                                            }
+                                    }
+                                    .addOnFailureListener { rollbackError ->
+                                        println("Error during rollback: ${rollbackError.message}")
+                                    }
+                            }
+                        }
+                        .addOnFailureListener { rollbackError ->
+                            println("Error fetching member data for rollback: ${rollbackError.message}")
+                        }
+                    onFailure(e)
+                }
+        }, onFailure)
+    }
 
 }

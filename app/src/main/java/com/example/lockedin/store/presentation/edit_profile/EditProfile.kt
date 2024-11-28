@@ -41,7 +41,7 @@ fun EditProfile(
 
 
     val username = userViewModel.currentUsername
-    var description = ""
+    val bio = userViewModel.currentUserBio
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
     var removeProfilePic = false;
@@ -172,11 +172,11 @@ fun EditProfile(
 
 
         TextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Username") },
+            value = bio.value,
+            onValueChange = { bio.value = it },
+            label = { Text("Bio") },
             modifier = Modifier
-                .height(200.dp)
+                .height(150.dp)
                 .fillMaxWidth()
                 .padding(12.dp)
                 .clip(RoundedCornerShape(12.dp)) // Rounded corners
@@ -205,20 +205,22 @@ fun EditProfile(
 
             Button(
                 onClick = {
-                    userViewModel.updateUsername(username.value)
+
                     if (!removeProfilePic &&  imageUri != null) {
                         uploadImageToFirebase(imageUri, context) { pfpUrl ->
-                            userViewModel.updateProfilePicture(pfpUrl)
+                            userViewModel.updateProfilePic(pfpUrl)
                         }
-                    }
-
-                    if(removeProfilePic) {
+                    } else if (removeProfilePic) {
                         imageUri = null
                         uploadImageToFirebase(imageUri, context) { pfpUrl ->
-                            userViewModel.updateProfilePicture(pfpUrl)
+                            userViewModel.updateProfilePic(pfpUrl)
                         }
                     }
 
+                    if (username.value != "") {
+                        userViewModel.updateUsername(username.value)
+                    }
+                    userViewModel.updateUserBio(bio.value)
                     navController.navigate("profile_screen")
                 },
                 modifier = Modifier

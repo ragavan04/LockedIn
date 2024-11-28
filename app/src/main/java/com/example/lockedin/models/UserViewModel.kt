@@ -1,5 +1,3 @@
-
-
 package com.example.lockedin.models
 import android.content.Context
 import android.net.Uri
@@ -45,6 +43,10 @@ class UserViewModel : ViewModel() {
 
     var currentUsername = mutableStateOf("")
 
+    var currentUserBio = mutableStateOf("")
+
+    var currentUserProfilePic = mutableStateOf<Uri?>(null)
+
     val postsForCommunity = mutableStateListOf<Post>()
 
     val userCommunities: LiveData<List<Community>> = _userCommunities
@@ -75,6 +77,7 @@ class UserViewModel : ViewModel() {
             val user = hashMapOf(
                 "userID" to userID,
                 "username" to username,
+                "bio" to "No bio yet",
             )
 
 
@@ -95,55 +98,20 @@ class UserViewModel : ViewModel() {
 
 
 
-    // fun joinUserCommunityOld(communityID: String, context: Context) {
-    //     val currentUser = auth.currentUser
-    //     if (currentUser != null) {
-    //         val userID = currentUser.uid
-
-    //         val userCommunity = hashMapOf(
-    //             "communityID" to communityID,
-    //             "points" to 0,
-    //             "streak" to 0,
-    //             "consistency" to 0
-    //         )
-
-    //         //updatePoints(communityID, 0)
-
-    //         db.collection("users").document(userID)
-    //             .collection("communities").document(communityID).set(userCommunity, SetOptions.merge())
-    //             .addOnSuccessListener {
-    //                fetchCommunityTime(communityID){notificationTime, communityName ->
-    //                    if (notificationTime != null && communityName != null){
-    //                        val delay = calculateNotificationDelay(notificationTime)
-    //                        if (delay > 0){
-    //                            scheduleCommunityNotification(
-    //                                context = context,
-    //                                delayMillis = delay,
-    //                                communityName = communityName,
-    //                            )
-    //                        }
-    //                    }
-    //                }
-    //             }
-    //             .addOnFailureListener { e ->
-    //                 println("Error storing user: $e")
-    //             }
-
-    //     }
-    // }
-
     fun joinUserCommunity(communityID: String, context: Context) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             val userID = currentUser.uid
-    
+
             val userCommunity = hashMapOf(
                 "communityID" to communityID,
                 "points" to 0,
                 "streak" to 0,
                 "consistency" to 0
             )
-    
+
+            //updatePoints(communityID, 0)
+
             db.collection("users").document(userID)
                 .collection("communities").document(communityID).set(userCommunity, SetOptions.merge())
                 .addOnSuccessListener {
@@ -190,6 +158,7 @@ class UserViewModel : ViewModel() {
                 .addOnFailureListener { e ->
                     println("Error storing user: $e")
                 }
+
         }
     }
 
@@ -297,6 +266,24 @@ class UserViewModel : ViewModel() {
                 Log.d("USER VIEW MODEL", "ERROR WHEN CREATING NOTIF CHANNEL FOR USER JOINING")
 
             }
+    }
+
+    fun fetchUserBio() {
+        viewModelScope.launch {
+            try {
+                val currentUser = auth.currentUser
+                if (currentUser != null) {
+                    val userID = currentUser.uid
+                    val document = db.collection("users").document(userID).get().await()
+                    
+                    val bio = document.getString("bio") ?: ""
+                    currentUserBio.value = bio
+                    println("Fetched bio: $bio")
+                }
+            } catch (e: Exception) {
+                println("Error fetching bio: ${e.message}")
+            }
+        }
     }
 
     fun fetchUserById(userId: String) {
@@ -425,25 +412,93 @@ class UserViewModel : ViewModel() {
         }
     }
 
+    // fun updateUsername(updatedUsername: String) {
+
+    //     viewModelScope.launch {
+
+    //         try {
+    //             val currentUser = auth.currentUser
+    //             if (currentUser != null) {
+    //                 val userID = currentUser.uid
+
+    //                 db.collection("users").document(userID).update("username", updatedUsername)
+    //                 println("User updated: $updatedUsername")
+
+    //             }
+
+    //         } catch (e: Exception) {
+    //             println("Error updating username: ${e.message}")
+    //         }
+    //     }
+
+    // }
+
     fun updateUsername(updatedUsername: String) {
-
         viewModelScope.launch {
-
             try {
                 val currentUser = auth.currentUser
                 if (currentUser != null) {
                     val userID = currentUser.uid
-
-                    db.collection("users").document(userID).update("username", updatedUsername)
-                    println("User updated: $updatedUsername")
-
+                    
+                    // First update user document
+                    db.collection("users").document(userID)
+                        .update("username", updatedUsername)
+                        .await() // Wait for update to complete
+                    
+                    // Fetch communities
+                    val communities= db.collection("users")
+                        .document(userID)
+                        .collection("communities")
+                        .get()
+                        .await()
+                    
+                    println("The # of communities the user is in is: ${communities.size()}")
+                    
+                    // Update username in all communities
+                    for (community in communities) {
+                        db.collection("communities")
+                            .document(community.id)
+                            .collection("members")
+                            .document(userID)
+                            .update("username", updatedUsername)
+                            .await() // Wait for each update to complete
+                    }
+                    
+                    // Update Auth Profile
+                    val profileUpdates = userProfileChangeRequest {
+                        displayName = updatedUsername
+                    }
+                    currentUser.updateProfile(profileUpdates).await()
+                    
+                    println("Username update completed for all communities")
                 }
-
             } catch (e: Exception) {
                 println("Error updating username: ${e.message}")
             }
         }
+    }
 
+    fun updateUserBio(bio: String) {
+        viewModelScope.launch {
+            try {
+                val currentUser = auth.currentUser
+                if (currentUser != null) {
+                    val userID = currentUser.uid
+                    
+                    // Update Firestore
+                    db.collection("users").document(userID)
+                        .update("bio", bio)
+                        .addOnSuccessListener {
+                            println("Bio updated successfully: $bio")
+                        }
+                        .addOnFailureListener { e ->
+                            println("Error updating bio in Firestore: ${e.message}")
+                        }.await()
+                }
+            } catch (e: Exception) {
+                println("Error updating bio: ${e.message}")
+            }
+        }
     }
 
     fun updateProfilePic(imageUri: String?) {
@@ -452,27 +507,50 @@ class UserViewModel : ViewModel() {
                 val currentUser = auth.currentUser
                 if (currentUser != null) {
                     val userID = currentUser.uid
-
-                    // Check if the imageUri is valid, otherwise set to an empty string
+                    
+                    // Check if the imageUri is valid, otherwise set to empty string
                     val profilePicUri = if (imageUri.isNullOrBlank() || imageUri == "error") "" else imageUri
-
-                    db.collection("users").document(userID).update("profilePic", profilePicUri)
-                        .addOnSuccessListener {
-                            println("ProfilePic updated successfully: $profilePicUri")
-                        }
-                        .addOnFailureListener { e ->
-                            println("Error updating profilePic in Firestore: ${e.message}")
-                        }
+                    
+                    // First update user document
+                    db.collection("users").document(userID)
+                        .update("profilePic", profilePicUri)
+                        .await()
+                    
+                    // Fetch communities
+                    val communitiesSnapshot = db.collection("users")
+                        .document(userID)
+                        .collection("communities")
+                        .get()
+                        .await()
+                    
+                    val communities = communitiesSnapshot.documents.map { doc -> doc.id }
+                    println("The # of communities the user is in is: ${communities.size}")
+                    
+                    // Update profile pic in all communities
+                    for (communityId in communities) {
+                        db.collection("communities")
+                            .document(communityId)
+                            .collection("members")
+                            .document(userID)
+                            .update("profilePic", profilePicUri)
+                            .await()
+                    }
+                    
+                    // Update Auth Profile
+                    val profileUpdates = userProfileChangeRequest {
+                        photoUri = if (profilePicUri.isEmpty()) null else Uri.parse(profilePicUri)
+                    }
+                    currentUser.updateProfile(profileUpdates).await()
+                    
+                    println("Profile picture update completed for all communities")
                 }
             } catch (e: Exception) {
-                println("Error updating profilePic: ${e.message}")
+                println("Error updating profile picture: ${e.message}")
             }
         }
     }
 
     fun updateProfilePictureForCommunities(userId: String, imageUri: String?) {
-
-
         val communities = _userCommunities.value ?: emptyList()
         var totalPointsLocal = 0 // Use a local variable to accumulate points
         var processedCount = 0 // Track processed communities

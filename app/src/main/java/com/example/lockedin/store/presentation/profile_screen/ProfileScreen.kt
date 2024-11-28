@@ -58,6 +58,7 @@ fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
 
 
     LaunchedEffect(Unit){
+        userViewModel.fetchUserBio()
         userViewModel.updateTotalPoints("")
         userViewModel.updateAverageConsistency("")
         val photoUrlString = user?.photoUrl?.toString() ?: ""
@@ -73,6 +74,9 @@ fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
         val email = it.email
         val photoUrl = it.photoUrl
         val uid = it.uid
+        val bio = userViewModel.currentUserBio.value
+
+        println("My bio is ${bio}")
 
         println("My profile picture URL is ${photoUrl.toString()}")
 
@@ -128,9 +132,7 @@ fun ProfileScreen(modifier: androidx.compose.ui.Modifier = androidx.compose.ui.M
                 Spacer(modifier = Modifier.height(24.dp)) // Increased spacing for better alignment
 
                 // Bio Section
-                UserBio(
-                    bio = "Here to accomplish my fitness goals.\nIf anyone goes to GoodLife, send me a message!"
-                )
+                UserBio(bio)
 
 
                 Spacer(modifier = Modifier.height(32.dp)) // Increased spacing to match design

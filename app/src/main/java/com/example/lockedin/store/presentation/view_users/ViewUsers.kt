@@ -70,6 +70,8 @@ fun ViewUsers(
     val community = communityViewModel.currentCommunity.value
     val members = communityViewModel.usersForCommunity
     val user = Firebase.auth.currentUser
+    var authUserRole by remember { mutableStateOf<String?>(null) }
+
 
     LaunchedEffect(authState.value) {
         when(authState.value){
@@ -82,7 +84,10 @@ fun ViewUsers(
         communityViewModel.fetchMembersForCommunity(communityId)
         communityViewModel.fetchCommunityById(communityId)
         if (user != null) {
-            userViewModel.updateProfilePictureForCommunities(user.uid, user.photoUrl.toString())
+            communityViewModel.fetchUserRole(communityId, user.uid) { fetchedRole ->
+                authUserRole = fetchedRole
+                println("AuthUSERROLE: ${authUserRole}")
+            }
         }
     }
 
@@ -144,16 +149,30 @@ fun ViewUsers(
                         columns = GridCells.Fixed(1),
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        items(members.distinctBy { it.userId }) { user ->
-                            println("Into the structure User, i am passing in ${user.userId}")
+                        items(members.distinctBy { it.userId }) { member ->
+                            println("Into the structure User, i am passing in ${member.userId}")
+                            var role by remember { mutableStateOf<String?>(null) }
+
+                            LaunchedEffect(member.userId) {
+                                communityViewModel.fetchUserRole(communityId, member.userId) { fetchedRole ->
+                                    println("Fetched role for user ${member.userId}: $fetchedRole")
+                                    role = fetchedRole
+                                }
+                            }
+
                             UserItemView(
                                 UserItem(
-                                    name = user.username,
-                                    imageRes = user.profilePic,
-                                    userId = user.userId
+                                    name = member.username,
+                                    imageRes = member.profilePic,
+                                    userId = member.userId,
                                 ),
                                 navController,
-                                userViewModel
+                                userViewModel,
+                                communityViewModel,
+                                communityId,
+                                authUserRole,
+                                user?.uid,
+                                role
                             )
                         }
                     }
@@ -165,8 +184,17 @@ fun ViewUsers(
 
 
 @Composable
-fun UserItemView(item: UserItem, navController: NavController, userViewModel: UserViewModel) {
-
+fun UserItemView(
+    item: UserItem,
+    navController: NavController,
+    userViewModel: UserViewModel,
+    communityViewModel: CommunityViewModel,
+    communityId: String,
+    authUserRole: String?,
+    authUserId: String?,
+    userRole: String?,
+    
+) {
     val photoUri = Uri.parse(item.imageRes)
 
     Row(
@@ -174,8 +202,8 @@ fun UserItemView(item: UserItem, navController: NavController, userViewModel: Us
             .padding(8.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF1E1E1E)) // Dark background
-            .padding(16.dp), // Inner padding for content
+            .background(Color(0xFF1E1E1E))
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Community Image
@@ -191,7 +219,7 @@ fun UserItemView(item: UserItem, navController: NavController, userViewModel: Us
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Community Name, Description, and View Button
+
         Column(
             modifier = Modifier.weight(1f) // Occupy remaining width
         ) {
@@ -200,32 +228,87 @@ fun UserItemView(item: UserItem, navController: NavController, userViewModel: Us
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = item.name, // Community Name
+                    text = item.name, 
                     fontSize = 18.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f) // Allow space for the button
+                    modifier = Modifier.weight(0.1f) 
                 )
 
-                // Small View Button
+                if (userRole == "owner") {
+                    Spacer(modifier = Modifier.width(8.dp)) // Small space between name and owner tag
+                    Text(
+                        text = "Owner",
+                        fontSize = 12.sp,
+                        color = Color.LightGray,
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
+               
+                Spacer(modifier = Modifier.width(8.dp)) // Small space between name and view button
                 androidx.compose.material3.Button(
                     onClick = {
-                        navController.navigate("profile_screen/${item.userId}")
+                        if (item.userId == authUserId) {
+                            navController.navigate("profile_screen")
+                        } else {
+                            navController.navigate("profile_screen/${item.userId}")
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF007BFF), // Button color
+                        containerColor = Color(0xFF007BFF),
                         contentColor = Color.White
                     ),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp), // Smaller button padding
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                     modifier = Modifier
-                        .height(30.dp) // Smaller height for the button
-                        .clip(RoundedCornerShape(8.dp)) // Rounded edges
+                        .height(30.dp)
+                        .clip(RoundedCornerShape(8.dp))
                 ) {
                     Text("View", fontSize = 12.sp) // Smaller font size
                 }
             }
 
             Spacer(modifier = Modifier.height(4.dp))
+
+
+
+            // Check if the current user is not the same as the item user
+            if (authUserRole == "owner" && authUserId != item.userId) {
+                Row {
+                    androidx.compose.material3.Button(
+                        onClick = {
+                            communityViewModel.removeUserFromCommunity(communityId, item.userId, {
+                                println("User removed successfully.")
+                            }, { e ->
+                                println("Error: ${e.message}")
+                            })
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Red,
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Text("Remove")
+                    }
+
+                    androidx.compose.material3.Button(
+                        onClick = {
+                            communityViewModel.blockUserFromCommunity(communityId, item.userId, {
+                                println("User blocked successfully.")
+                            }, { e ->
+                                println("Error: ${e.message}")
+                            })
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.DarkGray,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("Block")
+                    }
+                }
+            }
         }
     }
 }

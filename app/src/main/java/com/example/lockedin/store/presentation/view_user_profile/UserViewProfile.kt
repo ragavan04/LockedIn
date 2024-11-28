@@ -82,6 +82,7 @@ fun UserViewProfile(modifier: androidx.compose.ui.Modifier = androidx.compose.ui
         val username = user.username
         val photoUrlString = user.profilePic
         val userID = user.userID
+        val bio = user.bio
 
         println("The profile picture for ${userID} is ${photoUrlString}")
 
@@ -112,9 +113,7 @@ fun UserViewProfile(modifier: androidx.compose.ui.Modifier = androidx.compose.ui
                 Spacer(modifier = Modifier.height(24.dp)) // Increased spacing for better alignment
 
                 // Bio Section
-                UserBio(
-                    bio = "Here to accomplish my fitness goals.\nIf anyone goes to GoodLife, send me a message!"
-                )
+                UserBio(bio)
 
 
                 Spacer(modifier = Modifier.height(32.dp)) // Increased spacing to match design
