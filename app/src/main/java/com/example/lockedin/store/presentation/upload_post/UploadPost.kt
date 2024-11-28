@@ -254,5 +254,7 @@ fun saveImageUrlToCommunityPosts(
             .addOnFailureListener {
                 onComplete(false)
             }
+
+        userViewModel.addPointsForPost(postID, communityId,userId)
     }
 }

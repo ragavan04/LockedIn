@@ -175,12 +175,14 @@ class CommunityViewModel : ViewModel() {
 
     // Function to fetch posts for a specific community by ID
     fun fetchPostsForCommunity(communityId: String) {
+
+
         db.collection("communities")
             .document(communityId)
             .collection("posts")
             .get()
             .addOnSuccessListener { snapshot ->
-                usersForCommunity.clear()
+                postsForCommunity.clear()
                 for (document in snapshot.documents) {
                     val post = document.toObject(Post::class.java)?.copy(postId = document.id)
                     if (post != null) {
@@ -195,12 +197,14 @@ class CommunityViewModel : ViewModel() {
 
 
     fun fetchMembersForCommunity(communityId: String) {
+
+
         db.collection("communities")
             .document(communityId)
             .collection("members")
             .get()
             .addOnSuccessListener { snapshot ->
-                postsForCommunity.clear()
+                usersForCommunity.clear()
                 for (document in snapshot.documents) {
                     val member = document.toObject(Member::class.java)?.copy(userId = document.id)
                     if (member != null) {
