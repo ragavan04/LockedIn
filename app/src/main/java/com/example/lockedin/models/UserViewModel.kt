@@ -746,7 +746,6 @@ class UserViewModel : ViewModel() {
 
     fun fetchPointsForCommunity(communityID: String, userId: String, onResult: (Int?) -> Unit) {
 
-
         var userID: String = ""
 
         if(userId == "") {
@@ -903,89 +902,123 @@ class UserViewModel : ViewModel() {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun addPointsForPost(postId: String, communityId: String, userId: String) {
+    fun pointsGained(timeDifference: Int): Int {
 
-        viewModelScope.launch {
-            try {
-                var localPoints: Int = 0;
-                var community = db.collection("communities").document(communityId).get().await()
-                var post = db.collection("users").document(userId).collection("communities").
-                    document(communityId).collection("posts").document(postId).get().await()
+        var points: Int = 0
 
-
-                var notificationTime: String = ""
-                var postTime: Long = 0L
-
-                if(community != null) {
-                    notificationTime = community.getString("notificationTime").toString()
-                    println("Notification time obtained: ${notificationTime}")
-                }
-
-                if(post != null) {
-                    postTime = post.getLong("timePosted")!!
-                    println("Post time obtained: ${postTime}")
-                }
-
-                println("Passing in the community id: ${communityId}")
-                println("Passing in the user id: ${userId}")
-
-
-                fetchPointsForCommunity(communityId, "") { points ->
-                    if (points != null) {
-                        localPoints = points
-                    }
-                }
-
-                localPoints = pointsForCommunity.value!!
-
-                println("Points obtained was: ${localPoints}")
-
-                val notificationTimeInMillis = convertNotificationTimeToMillis(notificationTime)
-
-                println("The notification time in Millis is: ${notificationTimeInMillis}")
-
-                println("The time difference in minutes as calculated is ${(postTime - notificationTimeInMillis)/(1000*60)}")
-
-                val postTimeEST = convertToEST(postTime)
-                val notificationTimeEST = convertToEST(notificationTimeInMillis)
-
-                val timeDifference = timeDifference(notificationTimeEST,postTimeEST)
-
-                println("The notification time in EST is: ${notificationTimeEST}")
-                println("The post time in EST is: ${postTimeEST}")
-
-                println("The time difference was: ${timeDifference}")
-
-                var pointsGained: Int = 0
-
-                if(timeDifference < 30) {
-                    pointsGained = 100
-                } else if(30 <= timeDifference && timeDifference <= 60) {
-                    pointsGained = 75
-                } else if(60 <= timeDifference && timeDifference <= 90) {
-                    pointsGained = 50
-                } else if(90 <= timeDifference && timeDifference <= 120) {
-                    pointsGained = 25
-                } else {
-                    pointsGained = 0
-                }
-
-                val totalPoints = localPoints + pointsGained
-
-                println("Total before was is : $localPoints")
-
-                db.collection("users").document(userId).collection("communities").document(communityId)
-                    .update("points", totalPoints)
-
-                println("The points gained is ${pointsGained}, and now the total points for this community is ${totalPoints}")
-
-
-            } catch (e: Exception) {
-                println("Error fetching pointssssssss: ${e.message}")
-            }
+        if(timeDifference < 30) {
+            points = 100
+        } else if(30 <= timeDifference && timeDifference <= 60) {
+            points = 75
+        } else if(60 <= timeDifference && timeDifference <= 90) {
+            points = 50
+        } else if(90 <= timeDifference && timeDifference <= 120) {
+            points = 25
+        } else {
+            points = 0
         }
 
+        return points
+
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun addPointsForPost(postId: String, communityId: String, userId: String) {
+        viewModelScope.launch {
+            try {
+                val community = db.collection("communities").document(communityId).get().await()
+                val post = db.collection("users").document(userId).collection("communities")
+                    .document(communityId).collection("posts").document(postId).get().await()
+
+                fetchPointsForCommunity(communityId, userId) { points ->
+                    if (points == null) {
+                        println("Points not found, defaulting to 0")
+                        pointsForCommunity.value = 0
+                    }
+
+                    val localPoints = points ?: 0 // Use the fetched points or default to 0
+                    println("Points obtained: $localPoints")
+
+                    // Continue with notification and time calculations
+                    val notificationTime = community.getString("notificationTime").toString()
+                    val postTime = post.getLong("timePosted") ?: 0L
+
+                    val notificationTimeInMillis = convertNotificationTimeToMillis(notificationTime)
+                    val postTimeEST = convertToEST(postTime)
+                    val notificationTimeEST = convertToEST(notificationTimeInMillis)
+
+                    val timeDifference = timeDifference(notificationTimeEST, postTimeEST)
+                    val pointsGained = pointsGained(timeDifference)
+
+                    println("The difference in time is ${timeDifference}")
+                    println("The points gained is ${pointsGained}")
+                    println("The previous amount of points is ${localPoints}")
+
+                    val totalPoints = localPoints + pointsGained
+                    println("Total points: $totalPoints")
+
+                    // Update Firestore with the new points total
+                    db.collection("users").document(userId).collection("communities")
+                        .document(communityId).update("points", totalPoints)
+                }
+            } catch (e: Exception) {
+                println("Error adding points: ${e.message}")
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun addStreakForPost(postId: String, communityId: String, userId: String) {
+        viewModelScope.launch {
+            try {
+                val community = db.collection("communities").document(communityId).get().await()
+                val post = db.collection("users").document(userId).collection("communities")
+                    .document(communityId).collection("posts").document(postId).get().await()
+
+                fetchStreakForCommunity(communityId) { streak ->
+                    if (streak == null) {
+                        println("Points not found, defaulting to 0")
+                        pointsForCommunity.value = 0
+                    }
+
+                    val localStreak = streak ?: 0 // Use the fetched points or default to 0
+                    println("Streak obtained: $localStreak")
+
+                    // Continue with notification and time calculations
+                    val notificationTime = community.getString("notificationTime").toString()
+                    val postTime = post.getLong("timePosted") ?: 0L
+
+                    val notificationTimeInMillis = convertNotificationTimeToMillis(notificationTime)
+                    val postTimeEST = convertToEST(postTime)
+                    val notificationTimeEST = convertToEST(notificationTimeInMillis)
+
+                    val timeDifference = timeDifference(notificationTimeEST, postTimeEST)
+                    val pointsGained = pointsGained(timeDifference)
+
+                    println("The difference in time is ${timeDifference}")
+                    println("The points gained is ${pointsGained}")
+                    println("The previous streak was ${localStreak}")
+
+                    var totalStreak: Int = 0
+
+                    if(pointsGained == 100) {
+                        totalStreak = localStreak + 1
+                    } else {
+                        totalStreak = 0
+                    }
+
+
+                    println("New Streak: $totalStreak")
+
+                    // Update Firestore with the new points total
+                    db.collection("users").document(userId).collection("communities")
+                        .document(communityId).update("streak", totalStreak)
+                }
+            } catch (e: Exception) {
+                println("Error adding streak: ${e.message}")
+            }
+        }
     }
 
 
