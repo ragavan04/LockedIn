@@ -3,7 +3,9 @@
 package com.example.lockedin.models
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.compose.runtime.mutableStateListOf
@@ -23,6 +25,7 @@ import androidx.lifecycle.observe
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import scheduleCommunityNotification
+import java.time.*
 
 
 class UserViewModel : ViewModel() {
@@ -202,6 +205,8 @@ class UserViewModel : ViewModel() {
 
                     if(userCommunitySnapshot != null) {
                         val username = userCommunitySnapshot.getString("username")
+
+                        println("I WILL BE ADDING THE USERNAME ${username} TO MEMBERS")
 
                         if(username != null) {
 
@@ -865,6 +870,127 @@ class UserViewModel : ViewModel() {
                 }
         }
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun convertNotificationTimeToMillis(notificationTime: String): Long {
+        // Normalize to ensure HH:mm format
+        val normalizedTime = notificationTime.split(":").let {
+            String.format("%02d:%02d", it[0].toInt(), it[1].toInt())
+        }
+
+        // Parse the normalized time
+        val localTime = LocalTime.parse(normalizedTime)
+
+        // Get midnight of today in EST
+        val estZoneId = ZoneId.of("America/Toronto")
+        val todayMidnightInEST = ZonedDateTime.now(estZoneId).toLocalDate().atStartOfDay(estZoneId)
+
+        // Return the full milliseconds for the notification time in EST
+        return todayMidnightInEST.toInstant().toEpochMilli() + localTime.toSecondOfDay() * 1000
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun convertToEST(currentTimeMillis: Long): Long {
+        val torontoZoneId = ZoneId.of("America/Toronto") // Correct time zone for Toronto
+        val utcInstant = Instant.ofEpochMilli(currentTimeMillis) // Convert to Instant
+        val torontoZonedDateTime = utcInstant.atZone(torontoZoneId) // Convert to ZonedDateTime in Toronto
+        return torontoZonedDateTime.toInstant().toEpochMilli() // Return as milliseconds
+    }
+
+    fun timeDifference(postTime: Long, notificationTimeMillis: Long): Int {
+        val differenceMillis = postTime - notificationTimeMillis
+        return kotlin.math.abs((differenceMillis / (1000 * 60)).toInt()) // Convert millis to minutes
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun addPointsForPost(postId: String, communityId: String, userId: String) {
+
+        viewModelScope.launch {
+            try {
+                var localPoints: Int = 0;
+                var community = db.collection("communities").document(communityId).get().await()
+                var post = db.collection("users").document(userId).collection("communities").
+                    document(communityId).collection("posts").document(postId).get().await()
+
+
+                var notificationTime: String = ""
+                var postTime: Long = 0L
+
+                if(community != null) {
+                    notificationTime = community.getString("notificationTime").toString()
+                    println("Notification time obtained: ${notificationTime}")
+                }
+
+                if(post != null) {
+                    postTime = post.getLong("timePosted")!!
+                    println("Post time obtained: ${postTime}")
+                }
+
+                println("Passing in the community id: ${communityId}")
+                println("Passing in the user id: ${userId}")
+
+
+                fetchPointsForCommunity(communityId, "") { points ->
+                    if (points != null) {
+                        localPoints = points
+                    }
+                }
+
+                localPoints = pointsForCommunity.value!!
+
+                println("Points obtained was: ${localPoints}")
+
+                val notificationTimeInMillis = convertNotificationTimeToMillis(notificationTime)
+
+                println("The notification time in Millis is: ${notificationTimeInMillis}")
+
+                println("The time difference in minutes as calculated is ${(postTime - notificationTimeInMillis)/(1000*60)}")
+
+                val postTimeEST = convertToEST(postTime)
+                val notificationTimeEST = convertToEST(notificationTimeInMillis)
+
+                val timeDifference = timeDifference(notificationTimeEST,postTimeEST)
+
+                println("The notification time in EST is: ${notificationTimeEST}")
+                println("The post time in EST is: ${postTimeEST}")
+
+                println("The time difference was: ${timeDifference}")
+
+                var pointsGained: Int = 0
+
+                if(timeDifference < 30) {
+                    pointsGained = 100
+                } else if(30 <= timeDifference && timeDifference <= 60) {
+                    pointsGained = 75
+                } else if(60 <= timeDifference && timeDifference <= 90) {
+                    pointsGained = 50
+                } else if(90 <= timeDifference && timeDifference <= 120) {
+                    pointsGained = 25
+                } else {
+                    pointsGained = 0
+                }
+
+                val totalPoints = localPoints + pointsGained
+
+                println("Total before was is : $localPoints")
+
+                db.collection("users").document(userId).collection("communities").document(communityId)
+                    .update("points", totalPoints)
+
+                println("The points gained is ${pointsGained}, and now the total points for this community is ${totalPoints}")
+
+
+            } catch (e: Exception) {
+                println("Error fetching pointssssssss: ${e.message}")
+            }
+        }
+
+    }
+
+
+
+
 
 
 

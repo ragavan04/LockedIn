@@ -11,5 +11,5 @@ data class Community(
     var memberId: List<Member> =  emptyList(),
     var posts: List<Post> = emptyList(),
     var id: String =  "String",
-    var notificationTime: String = "",
+    var notificationTime: String = ""
 )

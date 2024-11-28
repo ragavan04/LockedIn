@@ -76,11 +76,12 @@ fun DashboardScreen(
     Scaffold(
         topBar = { HomeHeader(navController) },
         bottomBar = { BottomNavigationBar(navController) }
-    ) {
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
+                .padding(innerPadding)
                 .padding(16.dp)
         ) {
             HelloMessage(username)
@@ -91,6 +92,8 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(16.dp))
             CommunitiesSection(userCommunities, navController)
         }
+
+
     }
 }
 
