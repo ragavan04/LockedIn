@@ -256,5 +256,6 @@ fun saveImageUrlToCommunityPosts(
             }
 
         userViewModel.addPointsForPost(postID, communityId,userId)
+        userViewModel.addStreakForPost(postID, communityId,userId)
     }
 }
