@@ -43,7 +43,7 @@ fun AlertDialogCustom(
             }
         },
 
-        backgroundColor = LightBlue, contentColor = Color.White
+        backgroundColor = Color.Black, contentColor = Color.White
 
     )
 }
