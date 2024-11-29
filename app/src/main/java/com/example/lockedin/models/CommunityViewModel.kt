@@ -1,6 +1,8 @@
 package com.example.lockedin.models
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -13,6 +15,9 @@ import com.example.lockedin.models.UserViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import scheduleCommunityNotification
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.UUID
 
 class CommunityViewModel : ViewModel() {
@@ -172,14 +177,53 @@ class CommunityViewModel : ViewModel() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun calculateVisibilityWindow(notificationTime: String): Pair<Long, Long> {
+        val normalizedTime = notificationTime.split(":").let {
+            String.format("%02d:%02d", it[0].toInt(), it[1].toInt())
+        }
+        val localTime = LocalTime.parse(normalizedTime)
 
-    // Function to fetch posts for a specific community by ID
-    fun fetchPostsForCommunity(communityId: String) {
+        val estZoneId = ZoneId.of("America/Toronto")
+        val todayMidnightInEST = ZonedDateTime.now(estZoneId).toLocalDate().atStartOfDay(estZoneId)
+
+        // Calculate today's notification time
+        val todayNotificationMillis =
+            todayMidnightInEST.toInstant().toEpochMilli() + localTime.toSecondOfDay() * 1000
+
+        // Calculate yesterday's and tomorrow's notification times
+        val yesterdayNotificationMillis = todayNotificationMillis - (24 * 60 * 60 * 1000)
+        val tomorrowNotificationMillis = todayNotificationMillis + (24 * 60 * 60 * 1000)
+
+        return Pair(yesterdayNotificationMillis, tomorrowNotificationMillis)
+    }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun fetchPostsForCommunity(communityId: String, notificationTime: String) {
+        val (yesterdayStartTime, tomorrowStartTime) = calculateVisibilityWindow(notificationTime)
+
+        // Determine the current time
+        val currentTimeMillis = System.currentTimeMillis()
+
+        // Set the time range based on whether it's before or after today's notification time
+        val startTime: Long
+        val endTime: Long
+
+        if (currentTimeMillis < yesterdayStartTime + (24 * 60 * 60 * 1000)) { // Before today's notification time
+            startTime = yesterdayStartTime
+            endTime = yesterdayStartTime + (24 * 60 * 60 * 1000) // Today's notification time
+        } else { // After today's notification time
+            startTime = yesterdayStartTime + (24 * 60 * 60 * 1000) // Today's notification time
+            endTime = tomorrowStartTime
+        }
+
+        // Fetch posts within the calculated range
         db.collection("communities")
             .document(communityId)
             .collection("posts")
+            .whereGreaterThanOrEqualTo("timePosted", startTime)
+            .whereLessThan("timePosted", endTime)
             .get()
             .addOnSuccessListener { snapshot ->
                 postsForCommunity.clear()
@@ -194,6 +238,7 @@ class CommunityViewModel : ViewModel() {
                 println("Error fetching posts: ${exception.message}")
             }
     }
+
 
 
     fun fetchMembersForCommunity(communityId: String) {
@@ -379,13 +424,13 @@ class CommunityViewModel : ViewModel() {
         name: String,
         description: String,
         notificationTime: String,
-        imageUrl: String
+        communityImage: String
     ) {
         val updates = mapOf(
             "name" to name,
             "description" to description,
             "notificationTime" to notificationTime,
-            "imageUrl" to imageUrl
+            "communityImage" to communityImage
         )
 
         db.collection("communities").document(communityId)

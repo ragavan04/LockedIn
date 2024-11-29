@@ -3,7 +3,9 @@ import androidx.compose.runtime.remember
 import com.google.accompanist.permissions.*
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.text.format.DateUtils
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -41,6 +43,7 @@ import kotlinx.coroutines.withContext
 import java.net.URL
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CommunityPosts(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel, communityViewModel: CommunityViewModel, communityId: String) {
     val authState = authViewModel.authState.observeAsState()
@@ -54,11 +57,17 @@ fun CommunityPosts(modifier: Modifier = Modifier, navController: NavController, 
     // Fetch and observe posts for the specific community
     LaunchedEffect(communityId) {
         communityViewModel.fetchCommunityById(communityId)
-        communityViewModel.fetchPostsForCommunity(communityId)
     }
 
     val community = communityViewModel.currentCommunity.value
     val communityPosts = communityViewModel.postsForCommunity
+
+    LaunchedEffect(community) {
+        community?.let {
+            communityViewModel.fetchPostsForCommunity(communityId, it.notificationTime)
+        }
+    }
+
 
     Column(
         modifier = Modifier
