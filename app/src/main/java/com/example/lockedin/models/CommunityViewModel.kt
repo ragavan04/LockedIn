@@ -199,14 +199,14 @@ class CommunityViewModel : ViewModel() {
 
 
     fun fetchMembersForCommunity(communityId: String) {
-
-
         db.collection("communities")
             .document(communityId)
             .collection("members")
             .get()
             .addOnSuccessListener { snapshot ->
                 // usersForCommunity.clear()
+                val members = mutableListOf<Member>()
+                
                 for (document in snapshot.documents) {
                     val member = document.toObject(Member::class.java)?.copy(userId = document.id)
                     if (member != null) {
