@@ -32,6 +32,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, aut
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
+    var dialogMessage by remember { mutableStateOf("") }
     val openAlertDialog = remember { mutableStateOf(false) }
 
     val authState = authViewModel.authState.observeAsState()
@@ -95,10 +96,19 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, aut
         if (!loading){
             Button(onClick = {
                 loading = true
-                authViewModel.login(email, password, {success ->
-                    loading = false
-                    if (!success) openAlertDialog.value = true
-                })
+                if (email == "" || password == ""){
+                    openAlertDialog.value = true
+                    dialogMessage = "Please make sure all of the fields are completed and none are blank."
+                } else {
+                   openAlertDialog.value = false
+                    authViewModel.login(email, password, {success ->
+                        loading = false
+                        if (!success){
+                            openAlertDialog.value = true
+                            dialogMessage = "Either your password or email is incorrect, please try again."
+                        }
+                    })
+                }
 
             },
                 colors = ButtonDefaults.buttonColors(backgroundColor = LightBlue, contentColor = Color.White),
@@ -126,7 +136,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, aut
                         loading = false
                     },
                     dialogTitle = "Oops! Something Went Wrong",
-                    dialogText = "Either your password or email is incorrect, please try again",
+                    dialogText = dialogMessage,
                 )
             }
 

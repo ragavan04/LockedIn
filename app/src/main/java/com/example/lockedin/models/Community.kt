@@ -12,5 +12,5 @@ data class Community(
     var bannedUsers: List<User> = emptyList(),
     var posts: List<Post> = emptyList(),
     var id: String =  "String",
-    var notificationTime: String = "",
+    var notificationTime: String = ""
 )

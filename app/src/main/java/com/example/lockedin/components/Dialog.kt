@@ -39,11 +39,11 @@ fun AlertDialogCustom(
                     onDismissRequest()
                 }
             ) {
-                Text("Dismiss", color = Color.White)
+                Text("Dismiss", color = Color.Red)
             }
         },
 
-        backgroundColor = LightBlue, contentColor = Color.White
+        backgroundColor = Color.Black, contentColor = Color.White
 
     )
 }

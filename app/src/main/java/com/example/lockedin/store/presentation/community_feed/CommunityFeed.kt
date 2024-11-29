@@ -1,5 +1,14 @@
 package com.example.lockedin.store.presentation.community_feed
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -7,54 +16,43 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Text
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import coil3.compose.AsyncImage
-import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.lockedin.MyApp
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
-import androidx.navigation.NavController
-import com.example.lockedin.BottomNavigationBar
-import com.example.lockedin.R
-import com.example.lockedin.models.AuthState
-import com.example.lockedin.models.AuthViewModel
-import com.example.lockedin.models.CommunityViewModel
-import com.example.lockedin.store.presentation.progress_screen.ProgressItemView
-import com.example.lockedin.store.presentation.util.components.LoadingDialog
-import org.checkerframework.common.subtyping.qual.Bottom
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lockedin.store.presentation.community_posts.CommunityPosts
-import com.example.lockedin.models.UserViewModel
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.FloatingActionButton
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import com.example.lockedin.BottomNavigationBar
+import com.example.lockedin.components.AlertDialogCustom
+import com.example.lockedin.models.AuthState
+import com.example.lockedin.models.AuthViewModel
+import com.example.lockedin.models.CommunityViewModel
+import com.example.lockedin.models.UserViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.google.firebase.auth.FirebaseAuth
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CommunityFeed(
     modifier: Modifier = Modifier,
@@ -66,6 +64,21 @@ fun CommunityFeed(
     val authState = authViewModel.authState.observeAsState()
     val isLoading by communityViewModel.isLoading
     val communities = communityViewModel.communityList
+    val activity = LocalContext.current as Activity
+
+    val openAlertDialog = remember { mutableStateOf(false) }
+    var dialogMessage by remember { mutableStateOf("") }
+
+    val notificationPermissionState = rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+
+
+
+    if (!notificationPermissionState.status.isGranted){
+        openAlertDialog.value = true;
+        dialogMessage = "Please enable notification permissions for the consistency and progress feature to work accurately."
+    }
+
+
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
@@ -187,6 +200,26 @@ fun CommunityFeed(
                 }
             }
 
+            when {
+                openAlertDialog.value -> {
+                    AlertDialogCustom(
+                        onDismissRequest = { openAlertDialog.value = false },
+                        onConfirmation = {
+                            openAppSetings(activity)
+                            if (notificationPermissionState.status.isGranted){
+                                openAlertDialog.value = false
+                            }
+
+                        },
+                        dialogTitle = "Enable notifications",
+                        dialogText = dialogMessage
+                    )
+                }
+
+            }
+
+
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Display Loading or Communities
@@ -292,6 +325,14 @@ fun CommunityItemView(item: CommunityItem, navController: NavController, userVie
             )
         }
     }
+}
+
+fun openAppSetings(activity: Activity){
+    val intent = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", activity.packageName, null)
+    )
+    activity.startActivity(intent)
 }
 
 

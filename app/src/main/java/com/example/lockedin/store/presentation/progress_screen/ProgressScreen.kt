@@ -75,7 +75,7 @@ fun ProgressScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF131313))
+                .background(Color.Black)
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
@@ -140,7 +140,6 @@ fun ProgressItemView(post: Post) {
         postImage = com.example.lockedin.store.presentation.community_posts.loadImageFromUrl(post.imageURL)
     }
 
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -161,15 +160,12 @@ fun ProgressItemView(post: Post) {
             )
         }
 
-        val customColour = Color(0xFF5E5858)
         Box(
-
-
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
                 .background(
-                    color = customColour,
+                    color = Color(0xFF5E5858),
                     shape = RoundedCornerShape(
                         topStart = 0.dp,
                         topEnd = 0.dp,
