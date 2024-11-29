@@ -1,6 +1,7 @@
     package com.example.lockedin.store.presentation.dashboard
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -38,6 +39,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextDecoration
+import com.example.lockedin.store.presentation.progress_screen.convertTimestampToDate
 import com.example.lockedin.store.presentation.signup_screen.LightBlue
 import com.example.lockedin.store.presentation.signup_screen.LightPurple
 
@@ -166,9 +168,8 @@ fun HelloMessage(username: String) {
            fontSize = 54.sp,
            fontWeight = FontWeight.Bold,
            color = Color.White
-
-
        )
+
    }
 }
 
@@ -295,6 +296,9 @@ fun CommunitiesSection(communityList: List<Community>, navController: NavControl
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier.fillMaxSize()
@@ -308,11 +312,11 @@ fun CommunitiesSection(communityList: List<Community>, navController: NavControl
 
 @Composable
 fun CommunityCard(community: Community, navController: NavController) {
+
     Card(
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = Modifier
-            .padding(8.dp)
             .fillMaxWidth()
+            .padding(16.dp)
             .aspectRatio(1f)
             .clickable {
                 navController.navigate("CommunityPosts/${community.id}")
@@ -323,18 +327,47 @@ fun CommunityCard(community: Community, navController: NavController) {
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
-        AsyncImage(model = community.communityImage, contentDescription = "Community Image")
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
         ) {
-            Text(
-                text = community.name,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+
+            ) {
+                AsyncImage(
+                    model = community.communityImage,
+                    contentDescription = "Community Image",
+                    modifier = Modifier
+                        .size(57.dp) // Increased size to make the profile image larger
+                        .clip(CircleShape)
+                        .border(2.dp, Color.Gray, CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = community.name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    //modifier = Modifier.align(Alignment.BottomCenter)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Notification Time: ${community.notificationTime}",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    //modifier = Modifier.align(Alignment.BottomCenter)
+                )
+
+            }
         }
     }
 }
