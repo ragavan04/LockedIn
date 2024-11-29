@@ -415,6 +415,17 @@ fun OverflowMenu(showMenu: Boolean, onDismiss: () -> Unit, navController: NavCon
             ) {
                 Text("Owner Settings", style = MaterialTheme.typography.bodyMedium)
             }
+
+            Divider()
+
+            DropdownMenuItem(
+                onClick = {
+                    navController.navigate("ViewBannedUsers/${communityId}")
+                    onDismiss()
+                }
+            ) {
+                Text("View banned users", style = MaterialTheme.typography.bodyMedium)
+            }
         }
 
         // Show feedback if the permission is denied and rationale should be shown

@@ -9,6 +9,7 @@ data class Community(
     val name: String =  "String",
     val ownerId: String =  "String",
     var memberId: List<Member> =  emptyList(),
+    var bannedUsers: List<User> = emptyList(),
     var posts: List<Post> = emptyList(),
     var id: String =  "String",
     var notificationTime: String = "",

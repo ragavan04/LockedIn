@@ -29,7 +29,7 @@ import com.example.lockedin.store.presentation.progress_screen.ProgressScreen
 import com.example.lockedin.store.presentation.signup_screen.SignupScreen
 import com.example.lockedin.store.presentation.upload_post.UploadPost
 import com.example.lockedin.store.presentation.view_community.viewCommunity
-
+import com.example.lockedin.store.presentation.view_banned_users.ViewBannedUsers
 //import com.example.lockedin.store.presentation.search_screen.SearchScreen
 
 
@@ -115,6 +115,12 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel,
                 val communityId = backStackEntry.arguments?.getString("communityId")
                 if (communityId != null) {
                     OwnerSettings(modifier, navController, authViewModel, communityViewModel, communityId = communityId)
+                }
+            }
+            composable("ViewBannedUsers/{communityId}"){ backStackEntry ->
+                val communityId = backStackEntry.arguments?.getString("communityId")
+                if (communityId != null) {
+                    ViewBannedUsers(modifier, navController, communityViewModel, communityId = communityId)
                 }
             }
         })

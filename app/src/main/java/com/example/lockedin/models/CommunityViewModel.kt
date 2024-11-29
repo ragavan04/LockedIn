@@ -14,6 +14,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import scheduleCommunityNotification
 import java.util.UUID
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+
 
 class CommunityViewModel : ViewModel() {
 
@@ -30,7 +33,11 @@ class CommunityViewModel : ViewModel() {
     // List to hold posts for a specific community
     val postsForCommunity = mutableStateListOf<Post>()
 
-    val usersForCommunity = mutableStateListOf<Member>()
+    private val _usersForCommunity = MutableLiveData<List<Member>>()
+    val usersForCommunity: LiveData<List<Member>> get() = _usersForCommunity
+
+    private val _bannedUsersForCommunity = MutableLiveData<List<UserItem>>()
+    val bannedUsersForCommunity: LiveData<List<UserItem>> get() = _bannedUsersForCommunity
 
     val currentCommunity = mutableStateOf<Community?>(null)
 
@@ -175,7 +182,7 @@ class CommunityViewModel : ViewModel() {
             .collection("posts")
             .get()
             .addOnSuccessListener { snapshot ->
-                usersForCommunity.clear()
+//                usersForCommunity.clear()
                 for (document in snapshot.documents) {
                     val post = document.toObject(Post::class.java)?.copy(postId = document.id)
                     if (post != null) {
@@ -195,13 +202,15 @@ class CommunityViewModel : ViewModel() {
             .collection("members")
             .get()
             .addOnSuccessListener { snapshot ->
-                postsForCommunity.clear()
+                // postsForCommunity.clear()
+                val members = mutableListOf<Member>()
                 for (document in snapshot.documents) {
                     val member = document.toObject(Member::class.java)?.copy(userId = document.id)
                     if (member != null) {
-                        usersForCommunity.add(member)
+                        members.add(member)
                     }
                 }
+                _usersForCommunity.value = members
             }
             .addOnFailureListener { exception ->
                 println("Error fetching members: ${exception.message}")
@@ -436,99 +445,110 @@ class CommunityViewModel : ViewModel() {
     // }
 
     fun removeUserFromCommunity(communityId: String, userId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        // Fetch the current member data before removal
+        // Proceed to remove user from community's members
         db.collection("communities").document(communityId)
             .collection("members").document(userId)
-            .get()
-            .addOnSuccessListener { documentSnapshot ->
-                val memberData = documentSnapshot.data
-
-                // Proceed to remove user from community's members
-                db.collection("communities").document(communityId)
-                    .collection("members").document(userId)
+            .delete()
+            .addOnSuccessListener {
+                println("User removed from community members.")
+                // Remove community from user's list of communities
+                db.collection("users").document(userId)
+                    .collection("communities").document(communityId)
                     .delete()
                     .addOnSuccessListener {
-                        println("User removed from community members.")
-                        // Remove community from user's list of communities
-                        db.collection("users").document(userId)
-                            .collection("communities").document(communityId)
-                            .delete()
-                            .addOnSuccessListener {
-                                println("Community removed from user's list.")
-                                onSuccess()
-                            }
-                            .addOnFailureListener { e ->
-                                println("Error removing community from user's list: ${e.message}")
-                                // Rollback: Re-add user to community's members using stored data
-                                if (memberData != null) {
-                                    db.collection("communities").document(communityId)
-                                        .collection("members").document(userId)
-                                        .set(memberData)
-                                        .addOnSuccessListener {
-                                            println("Rollback successful: User re-added to community members.")
-                                        }
-                                        .addOnFailureListener { rollbackError ->
-                                            println("Error during rollback: ${rollbackError.message}")
-                                        }
-                                }
-                                onFailure(e)
-                            }
+                        println("Community removed from user's list.")
+                        onSuccess()
                     }
                     .addOnFailureListener { e ->
-                        println("Error removing user from community: ${e.message}")
+                        println("Error removing community from user's list: ${e.message}")
                         onFailure(e)
                     }
             }
             .addOnFailureListener { e ->
-                println("Error fetching member data: ${e.message}")
+                println("Error removing user from community: ${e.message}")
                 onFailure(e)
             }
     }
 
-    fun blockUserFromCommunity(communityId: String, userId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    fun banUserFromCommunity(communityId: String, userId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
         removeUserFromCommunity(communityId, userId, {
-            // Add community to user's blocked list
+            // Add community to user's banned list
             db.collection("users").document(userId)
-                .collection("blockedCommunities").document(communityId)
-                .set(mapOf("blockedAt" to System.currentTimeMillis()))
+                .collection("bannedCommunities").document(communityId)
+                .set(mapOf("bannedAt" to System.currentTimeMillis()))
                 .addOnSuccessListener {
-                    println("Community added to user's blocked list.")
-                    onSuccess()
+                    println("Community added to user's banned list.")
+                    
+                    // Add user to community's banned users list
+                    db.collection("communities").document(communityId)
+                        .collection("bannedUsers").document(userId)
+                        .set(mapOf("bannedAt" to System.currentTimeMillis()))
+                        .addOnSuccessListener {
+                            println("User added to community's banned users list.")
+                            fetchBannedUsersForCommunity(communityId) // Fetch the updated list of banned users
+                            onSuccess()
+                        }
+                        .addOnFailureListener { e ->
+                            println("Error adding user to community's banned users list: ${e.message}")
+                            onFailure(e)
+                        }
                 }
                 .addOnFailureListener { e ->
-                    println("Error blocking user from community: ${e.message}")
-                    // Rollback: Re-add user to community's members and user's communities using stored data
-                    db.collection("communities").document(communityId)
-                        .collection("members").document(userId)
-                        .get()
-                        .addOnSuccessListener { documentSnapshot ->
-                            val memberData = documentSnapshot.data
-                            if (memberData != null) {
-                                db.collection("communities").document(communityId)
-                                    .collection("members").document(userId)
-                                    .set(memberData)
-                                    .addOnSuccessListener {
-                                        db.collection("users").document(userId)
-                                            .collection("communities").document(communityId)
-                                            .set(mapOf("communityID" to communityId, "points" to 0, "streak" to 0, "consistency" to 0))
-                                            .addOnSuccessListener {
-                                                println("Rollback successful: User re-added to community members and user's communities.")
-                                            }
-                                            .addOnFailureListener { rollbackError ->
-                                                println("Error during rollback: ${rollbackError.message}")
-                                            }
-                                    }
-                                    .addOnFailureListener { rollbackError ->
-                                        println("Error during rollback: ${rollbackError.message}")
-                                    }
-                            }
-                        }
-                        .addOnFailureListener { rollbackError ->
-                            println("Error fetching member data for rollback: ${rollbackError.message}")
-                        }
+                    println("Error banning user from community: ${e.message}")
                     onFailure(e)
                 }
         }, onFailure)
+    }
+
+    fun unbanUserFromCommunity(communityId: String, userId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        db.collection("communities").document(communityId)
+            .collection("bannedUsers").document(userId)
+            .delete()
+            .addOnSuccessListener {
+                db.collection("users").document(userId)
+                    .collection("blockedCommunities").document(communityId)
+                    .delete()
+                    .addOnSuccessListener {
+                        println("User unbanned successfully.")
+                        onSuccess()
+                    }
+                    .addOnFailureListener { e ->
+                        println("Error unbanning user: ${e.message}")
+                        onFailure(e)
+                    }
+            }
+            .addOnFailureListener { e ->
+                println("Error removing user from banned list: ${e.message}")
+                onFailure(e)
+            }
+    }
+
+    fun fetchBannedUsersForCommunity(communityId: String) {
+        db.collection("communities")
+            .document(communityId)
+            .collection("bannedUsers")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val bannedUsers = mutableListOf<UserItem>()
+                for (document in snapshot.documents) {
+                    db.collection("users").document(document.id)
+                        .get()
+                        .addOnSuccessListener { userDoc ->
+                            val username = userDoc.getString("username") ?: ""
+                            val profilePic = userDoc.getString("profilePic") ?: ""
+                            val userItem = UserItem(
+                                name = username,
+                                imageRes = profilePic,
+                                userId = document.id
+                            )
+                            bannedUsers.add(userItem)
+                            _bannedUsersForCommunity.value = bannedUsers
+                        }
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error fetching banned users: ${exception.message}")
+            }
     }
 
 }

@@ -68,10 +68,26 @@ fun ViewUsers(
 
     val authState = authViewModel.authState.observeAsState()
     val community = communityViewModel.currentCommunity.value
-    val members = communityViewModel.usersForCommunity
+    // val members = communityViewModel.usersForCommunity.observeAsState()
+    val members by communityViewModel.usersForCommunity.observeAsState(emptyList())
+
     val user = Firebase.auth.currentUser
     var authUserRole by remember { mutableStateOf<String?>(null) }
 
+    var refreshTrigger by remember { mutableStateOf(0) }
+
+    LaunchedEffect(refreshTrigger) {
+        communityViewModel.fetchMembersForCommunity(communityId)
+        communityViewModel.fetchCommunityById(communityId)
+        if (user != null) {
+            communityViewModel.fetchUserRole(communityId, user.uid) { fetchedRole ->
+                authUserRole = fetchedRole
+                println("AuthUSERROLE: ${authUserRole}")
+            }
+        }
+        
+        // members = communityViewModel.usersForCommunity
+    }
 
     LaunchedEffect(authState.value) {
         when(authState.value){
@@ -172,7 +188,12 @@ fun ViewUsers(
                                 communityId,
                                 authUserRole,
                                 user?.uid,
-                                role
+                                role,
+                                refreshTrigger,
+                                onRefresh = { 
+                                    refreshTrigger++ 
+                                    println("Refresh trigger: ${refreshTrigger}")   
+                                }
                             )
                         }
                     }
@@ -193,7 +214,8 @@ fun UserItemView(
     authUserRole: String?,
     authUserId: String?,
     userRole: String?,
-    
+    refreshTrigger: Int,
+    onRefresh: () -> Unit
 ) {
     val photoUri = Uri.parse(item.imageRes)
 
@@ -279,13 +301,15 @@ fun UserItemView(
                         onClick = {
                             communityViewModel.removeUserFromCommunity(communityId, item.userId, {
                                 println("User removed successfully.")
+                                onRefresh()
                             }, { e ->
                                 println("Error: ${e.message}")
                             })
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Red,
+                            containerColor = Color.DarkGray,
                             contentColor = Color.White
+                            
                         ),
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
@@ -294,14 +318,15 @@ fun UserItemView(
 
                     androidx.compose.material3.Button(
                         onClick = {
-                            communityViewModel.blockUserFromCommunity(communityId, item.userId, {
-                                println("User blocked successfully.")
+                            communityViewModel.banUserFromCommunity(communityId, item.userId, {
+                                println("User banned successfully.")
+                                onRefresh()
                             }, { e ->
                                 println("Error: ${e.message}")
                             })
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.DarkGray,
+                            containerColor = Color.Red,
                             contentColor = Color.White
                         )
                     ) {
