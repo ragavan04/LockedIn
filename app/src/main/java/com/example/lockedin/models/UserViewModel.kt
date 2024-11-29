@@ -16,7 +16,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.UUID
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import androidx.lifecycle.observe
@@ -24,6 +23,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import scheduleCommunityNotification
 import java.time.*
+import java.util.*
 
 
 class UserViewModel : ViewModel() {
@@ -67,6 +67,10 @@ class UserViewModel : ViewModel() {
     var totalPoints = mutableStateOf<Int?>(0)
 
     var averageConsistency = mutableStateOf<Float?>(0f)
+
+    var glocalCounter: Int = 0
+
+    var canPost: Boolean = false;
 
 
     // LOGIC FOR PUSHING USER DATA TO DATABASE
@@ -980,7 +984,7 @@ class UserViewModel : ViewModel() {
 
     fun timeDifference(postTime: Long, notificationTimeMillis: Long): Int {
         val differenceMillis = postTime - notificationTimeMillis
-        return kotlin.math.abs((differenceMillis / (1000 * 60)).toInt()) // Convert millis to minutes
+        return (differenceMillis / (1000 * 60)).toInt() // Convert millis to minutes
     }
 
 
@@ -988,7 +992,7 @@ class UserViewModel : ViewModel() {
 
         var points: Int = 0
 
-        if(timeDifference < 30) {
+        if(0 <= timeDifference && timeDifference < 30) {
             points = 100
         } else if(30 <= timeDifference && timeDifference <= 60) {
             points = 75
@@ -1001,6 +1005,100 @@ class UserViewModel : ViewModel() {
         }
 
         return points
+
+    }
+
+
+    fun replaceTime(Time: Long): Long {
+
+        val currentDate = Calendar.getInstance()
+
+        // Create a calendar instance for the given timeInMillis to extract the time part
+        val timeCalendar = Calendar.getInstance()
+        timeCalendar.timeInMillis = Time
+
+        // Extract the hour and minute from the given timeInMillis
+        val givenHour = timeCalendar.get(Calendar.HOUR_OF_DAY)
+        val givenMinute = timeCalendar.get(Calendar.MINUTE)
+
+        // Set the current date to the given time (replace hours and minutes)
+        currentDate.set(Calendar.HOUR_OF_DAY, givenHour)
+        currentDate.set(Calendar.MINUTE, givenMinute)
+        currentDate.set(Calendar.SECOND, 0)
+        currentDate.set(Calendar.MILLISECOND, 0)
+
+        // Return the final time in milliseconds
+        return currentDate.timeInMillis
+    }
+
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun validPost(communityId: String, userId: String, onResult: (Int) -> Unit) {
+
+        var valid: Boolean = false;
+
+        viewModelScope.launch {
+            try {
+
+                val userPostsCollection = db.collection("users").document(userId).collection("communities")
+                    .document(communityId).collection("posts").get().await()
+                val community = db.collection("communities").document(communityId).get().await()
+
+                val notificationTime = community.getString("notificationTime").toString()
+
+                var counter: Int = 0
+                var timeCounter: Int = 0
+                var differenceInTime: Int = 0
+
+                val notificationTimeInMillis = convertNotificationTimeToMillis(notificationTime)
+                val notificationTimeWithDate = replaceTime(notificationTimeInMillis)
+
+                println("Notification with today's date is ${notificationTimeWithDate}")
+
+
+                val notificationTimeEST = convertToEST(notificationTimeWithDate)
+
+
+                for (userPosts in userPostsCollection) {
+                    val post = userPosts.toObject(Post::class.java)
+                    val postTimeEST = convertToEST(post.timePosted)
+                    differenceInTime = timeDifference(postTimeEST, notificationTimeEST)
+
+                    if(0 <= differenceInTime && differenceInTime <= 120) {
+                        counter++
+                        timeCounter += differenceInTime
+
+                        println("The id of the post that was found within range is ${post.postId}")
+                        println("This user has already made a post, SO NO POINTS FOR U")
+                        println("The time today's post was posted is: ${postTimeEST}")
+                        println("The difference in time is ${differenceInTime}")
+                        println("Notificaion time: ${notificationTimeEST}")
+                        println("User Post time: ${postTimeEST}")
+                    } else {
+                        println("The user can still post")
+                    }
+
+                }
+
+                if(timeCounter == 0) {
+                    counter = 1
+                }
+
+                if( differenceInTime != 0 && timeCounter / differenceInTime == differenceInTime) {
+                    counter = 1
+                }
+
+                glocalCounter = counter
+
+                onResult(counter)
+                println("Counter is: ${counter}")
+
+
+            } catch (e: Exception) {
+                println("Error determining post: ${e.message}")
+            }
+        }
 
     }
 
@@ -1030,7 +1128,7 @@ class UserViewModel : ViewModel() {
                     val postTimeEST = convertToEST(postTime)
                     val notificationTimeEST = convertToEST(notificationTimeInMillis)
 
-                    val timeDifference = timeDifference(notificationTimeEST, postTimeEST)
+                    val timeDifference = timeDifference(postTimeEST, notificationTimeEST)
                     val pointsGained = pointsGained(timeDifference)
 
                     println("The difference in time is ${timeDifference}")
@@ -1047,7 +1145,7 @@ class UserViewModel : ViewModel() {
                     addConsistencyForPost(postId, communityId, userId, totalPoints)
                 }
             } catch (e: Exception) {
-                println("Error adding points: ${e.message}")
+                println("Error adding consistency: ${e.message}")
             }
         }
     }
@@ -1077,7 +1175,7 @@ class UserViewModel : ViewModel() {
                     val postTimeEST = convertToEST(postTime)
                     val notificationTimeEST = convertToEST(notificationTimeInMillis)
 
-                    val timeDifference = timeDifference(notificationTimeEST, postTimeEST)
+                    val timeDifference = timeDifference(postTimeEST, notificationTimeEST)
                     val pointsGained = pointsGained(timeDifference)
 
                     println("The difference in time is ${timeDifference}")
@@ -1119,7 +1217,7 @@ class UserViewModel : ViewModel() {
                     val joinedAtEST = convertToEST(joinedTime)
                     val currentTimeEST = convertToEST(currentTime)
 
-                    var daysJoined = (timeDifference(joinedAtEST, currentTimeEST) / (60 * 24))
+                    var daysJoined = (timeDifference(currentTimeEST, joinedAtEST) / (60 * 24))
 
                     if(daysJoined == 0) {
                         daysJoined = 1
@@ -1154,13 +1252,6 @@ class UserViewModel : ViewModel() {
             }
         }
     }
-
-
-
-
-
-
-
 }
 
 
