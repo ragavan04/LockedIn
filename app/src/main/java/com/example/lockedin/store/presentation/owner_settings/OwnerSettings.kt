@@ -226,22 +226,46 @@ fun OwnerSettings(
             // Update Button
             Button(
                 onClick = {
-                    if (communityName.isBlank() || communityDescription.isBlank() || imageUri == null || notificationTime.isBlank()) {
+                    if (communityName.isBlank() || communityDescription.isBlank() || notificationTime.isBlank()) {
                         Toast.makeText(context, "Please fill in all fields.", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
 
-                    // Upload image and update community details
-                    uploadImageToFirebase(imageUri, context, { imageUrl ->
-                        communityViewModel.updateCommunity(
-                            communityId = communityId,
-                            name = communityName,
-                            description = communityDescription,
-                            notificationTime = notificationTime,
-                            communityImage = imageUrl
-                        )
-                        navController.navigateUp()
-                    })
+                    // Determine the image to use
+                    val imageToUpload = imageUri
+                    val existingImageUrl = currentCommunity?.communityImage.orEmpty()
+
+                    // If a new image is selected, upload it
+                    if (imageToUpload != null && imageToUpload.toString().startsWith("content://")) {
+                        uploadImageToFirebase(imageToUpload, context, { uploadedImageUrl ->
+                            communityViewModel.updateCommunity(
+                                communityId = communityId,
+                                name = communityName,
+                                description = communityDescription,
+                                notificationTime = notificationTime,
+                                communityImage = uploadedImageUrl
+                            )
+                            navController.navigateUp()
+                        })
+                    } else {
+                        // No new image selected; use the existing image URL
+                        if (existingImageUrl.isNotBlank()) {
+                            communityViewModel.updateCommunity(
+                                communityId = communityId,
+                                name = communityName,
+                                description = communityDescription,
+                                notificationTime = notificationTime,
+                                communityImage = existingImageUrl
+                            )
+                            navController.navigateUp()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "No image selected and no existing image found. Please provide an image.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
                 },
                 modifier = Modifier
                     .width(200.dp)
@@ -254,6 +278,8 @@ fun OwnerSettings(
             ) {
                 Text("Update")
             }
+
+
         }
     }
 }
