@@ -103,7 +103,10 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, aut
                    openAlertDialog.value = false
                     authViewModel.login(email, password, {success ->
                         loading = false
-                        if (!success) openAlertDialog.value = true
+                        if (!success){
+                            openAlertDialog.value = true
+                            dialogMessage = "Either your password or email is incorrect, please try again."
+                        }
                     })
                 }
 
@@ -133,7 +136,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController, aut
                         loading = false
                     },
                     dialogTitle = "Oops! Something Went Wrong",
-                    dialogText = "Either your password or email is incorrect, please try again",
+                    dialogText = dialogMessage,
                 )
             }
 
