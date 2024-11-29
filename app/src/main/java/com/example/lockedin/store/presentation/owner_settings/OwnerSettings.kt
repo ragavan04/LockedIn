@@ -1,10 +1,15 @@
 package com.example.lockedin.store.presentation.owner_settings
 
 import android.app.TimePickerDialog
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -14,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -21,12 +28,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.example.lockedin.R
 import com.example.lockedin.models.AuthState
 import com.example.lockedin.models.AuthViewModel
 import com.example.lockedin.models.CommunityViewModel
+import com.example.lockedin.store.presentation.upload_post.uploadImageToFirebase
 import java.util.*
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OwnerSettings(
@@ -36,14 +44,21 @@ fun OwnerSettings(
     communityViewModel: CommunityViewModel,
     communityId: String
 ) {
+    val context = LocalContext.current
     val authState by authViewModel.authState.observeAsState()
-    val currentCommunity by communityViewModel.currentCommunity
+    val currentCommunity = communityViewModel.currentCommunity.value
 
     var communityName by remember { mutableStateOf("") }
     var communityDescription by remember { mutableStateOf("") }
     var notificationTime by remember { mutableStateOf("") }
-    var communityImage by remember { mutableStateOf("") }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
     val maxDescriptionLength = 100
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+    }
 
     // Fetch the community when the composable loads
     LaunchedEffect(Unit) {
@@ -56,7 +71,7 @@ fun OwnerSettings(
             communityName = it.name
             communityDescription = it.description
             notificationTime = it.notificationTime
-            communityImage = it.communityImage
+            imageUri = if (it.communityImage.isNotBlank()) Uri.parse(it.communityImage) else null
         }
     }
 
@@ -145,30 +160,39 @@ fun OwnerSettings(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Community Picture URL
-            TextField(
-                value = communityImage,
-                onValueChange = { communityImage = it },
-                label = { Text("Community Picture URL") },
+            // Choose Image
+            Button(
+                onClick = {
+                    launcher.launch("image/*")
+                },
                 modifier = Modifier
-                    .width(370.dp)
-                    .height(80.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFFFFFFF)),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color(0xFF333333),
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
+                    .width(200.dp)
+                    .height(50.dp)
+                    .clip(RoundedCornerShape(30.dp)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color(0xFF333333),
                 )
+            ) {
+                Text("Choose Image")
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Display Selected Image
+            AsyncImage(
+                model = imageUri,
+                contentDescription = "Community Image",
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, Color.Gray, CircleShape),
+                contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Notification Time
+            // Notification Time Picker
             Button(
                 onClick = {
                     val calendar = Calendar.getInstance()
@@ -202,33 +226,22 @@ fun OwnerSettings(
             // Update Button
             Button(
                 onClick = {
-                    // Validation checks
-                    if (communityName.isBlank()) {
-                        Toast.makeText(navController.context, "Please enter a community name.", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (communityDescription.isBlank()) {
-                        Toast.makeText(navController.context, "Please enter a description.", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (communityImage.isBlank()) {
-                        Toast.makeText(navController.context, "Please enter a valid picture URL.", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (notificationTime.isBlank()) {
-                        Toast.makeText(navController.context, "Please set a notification time.", Toast.LENGTH_SHORT).show()
+                    if (communityName.isBlank() || communityDescription.isBlank() || imageUri == null || notificationTime.isBlank()) {
+                        Toast.makeText(context, "Please fill in all fields.", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
 
-                    // If all fields are valid, proceed with the update
-                    communityViewModel.updateCommunity(
-                        communityId = communityId,
-                        name = communityName,
-                        description = communityDescription,
-                        notificationTime = notificationTime,
-                        imageUrl = communityImage
-                    )
-                    navController.navigateUp()
+                    // Upload image and update community details
+                    uploadImageToFirebase(imageUri, context, { imageUrl ->
+                        communityViewModel.updateCommunity(
+                            communityId = communityId,
+                            name = communityName,
+                            description = communityDescription,
+                            notificationTime = notificationTime,
+                            communityImage = imageUrl
+                        )
+                        navController.navigateUp()
+                    })
                 },
                 modifier = Modifier
                     .width(200.dp)
@@ -241,7 +254,7 @@ fun OwnerSettings(
             ) {
                 Text("Update")
             }
-
         }
     }
 }
+
