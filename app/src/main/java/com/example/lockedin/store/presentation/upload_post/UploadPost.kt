@@ -255,7 +255,22 @@ fun saveImageUrlToCommunityPosts(
                 onComplete(false)
             }
 
-        userViewModel.addPointsForPost(postID, communityId,userId)
-        userViewModel.addStreakForPost(postID, communityId,userId)
+
+        userViewModel.validPost(communityId, userId) { counter ->
+            var localCounter: Int = 0
+            localCounter = counter
+
+            println("The local counter is ${localCounter}")
+
+            if(localCounter == 1) {
+                println("The USER CAN STILL POST!!!!")
+                userViewModel.addPointsForPost(postID, communityId,userId)
+                userViewModel.addStreakForPost(postID, communityId,userId)
+            } else {
+                println("NO POSTING FOR YOU")
+            }
+
+        }
+
     }
 }
