@@ -50,6 +50,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.google.firebase.auth.FirebaseAuth
+import android.widget.Toast
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
@@ -260,66 +261,74 @@ fun CommunityFeed(
 
 @Composable
 fun CommunityItemView(item: CommunityItem, navController: NavController, userViewModel: UserViewModel) {
+    val context = LocalContext.current
+    val communityViewModel: CommunityViewModel = viewModel()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+
     Row(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF1E1E1E)) // Dark background
-            .padding(16.dp), // Inner padding for content
+            .background(Color(0xFF1E1E1E))
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Community Image
         AsyncImage(
-            model = item.imageRes, // Replace with dynamic image loading
+            model = item.imageRes,
             contentDescription = null,
             modifier = Modifier
-                .size(64.dp) // Circular image
+                .size(64.dp)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop
         )
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Community Name, Description, and View Button
         Column(
-            modifier = Modifier.weight(1f) // Occupy remaining width
+            modifier = Modifier.weight(1f)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = item.name, // Community Name
+                    text = item.name,
                     fontSize = 18.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f) // Allow space for the button
+                    modifier = Modifier.weight(1f)
                 )
 
-                // Small View Button
                 Button(
                     onClick = {
-                        navController.navigate("viewCommunity/${item.communityId}")
+                        if (userId != null) {
+                            communityViewModel.isUserBannedFromCommunity(item.communityId, userId) { isBanned ->
+                                if (isBanned) {
+                                    Toast.makeText(context, "You have been banned from this community.", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    navController.navigate("viewCommunity/${item.communityId}")
+                                }
+                            }
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF007BFF),
                         contentColor = Color.White
                     ),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp), // Smaller button padding
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                     modifier = Modifier
-                        .height(30.dp) // Smaller height for the button
-                        .clip(RoundedCornerShape(8.dp)) // Rounded edges
+                        .height(30.dp)
+                        .clip(RoundedCornerShape(8.dp))
                 ) {
-                    Text("View", fontSize = 12.sp, color = Color.White) // Smaller font size
+                    Text("View", fontSize = 12.sp, color = Color.White)
                 }
             }
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Community Description
             Text(
-                text = item.description, // Replace with actual description
+                text = item.description,
                 fontSize = 14.sp,
                 color = Color.Gray
             )

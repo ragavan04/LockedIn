@@ -554,4 +554,19 @@ class CommunityViewModel : ViewModel() {
             }
     }
 
+    fun isUserBannedFromCommunity(communityId: String, userId: String, onResult: (Boolean) -> Unit) {
+        db.collection("communities")
+            .document(communityId)
+            .collection("bannedUsers")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                onResult(document.exists()) // User is banned if the document exists
+            }
+            .addOnFailureListener { exception ->
+                println("Error checking if user is banned: ${exception.message}")
+                onResult(false) // Default to not banned on error
+            }
+    }
+
 }
