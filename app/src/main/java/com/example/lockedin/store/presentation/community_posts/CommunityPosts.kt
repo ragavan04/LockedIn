@@ -75,7 +75,7 @@ fun CommunityPosts(modifier: Modifier = Modifier, navController: NavController, 
             .background(Color(0xFF131313))
     ) {
         community?.let {
-            CommunityHeader(community, navController, communityId)
+            CommunityHeader(community, navController, communityId, communityViewModel)
         }
 
         LazyVerticalGrid(
@@ -92,7 +92,7 @@ fun CommunityPosts(modifier: Modifier = Modifier, navController: NavController, 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CommunityHeader(
-    community: Community, navController: NavController, communityId: String
+    community: Community, navController: NavController, communityId: String, communityViewModel: CommunityViewModel
 ) {
 
     var showMenu by remember { mutableStateOf(false) }
@@ -140,7 +140,8 @@ fun CommunityHeader(
                     onDismiss = { showMenu = false },
                     navController = navController,
                     communityId = communityId,
-                    communityOwnerId = community.ownerId
+                    communityOwnerId = community.ownerId,
+                    communityViewModel = communityViewModel
                 )
             }
         }
@@ -372,7 +373,7 @@ fun formatEpochToRelativeTime(epochMillis: Long): String {
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun OverflowMenu(showMenu: Boolean, onDismiss: () -> Unit, navController: NavController, communityId: String, communityOwnerId: String) {
+fun OverflowMenu(showMenu: Boolean, onDismiss: () -> Unit, navController: NavController, communityId: String, communityOwnerId: String, communityViewModel: CommunityViewModel) {
     val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
@@ -434,6 +435,21 @@ fun OverflowMenu(showMenu: Boolean, onDismiss: () -> Unit, navController: NavCon
                 }
             ) {
                 Text("View banned users", style = MaterialTheme.typography.bodyMedium)
+            }
+        } else {
+            DropdownMenuItem(
+                onClick = {
+                    val nonNullableUserId = currentUserId ?: ""
+                    communityViewModel.removeUserFromCommunity(communityId, nonNullableUserId, {
+                        println("User left the community successfully.")
+                        navController.navigate("community_screen")
+                    }, { e ->
+                        println("Error leaving community: ${e.message}")
+                    })
+                    onDismiss()
+                }
+            ) {
+                Text("Leave Community", style = MaterialTheme.typography.bodyMedium)
             }
         }
 
