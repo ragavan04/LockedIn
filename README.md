@@ -11,6 +11,9 @@ LockedIn is a dynamic social media platform designed to bring people together th
 - Ragavan Ravendran (rravendr@uwaterloo.ca)
 - Shaheed Mohomad Ali (smohamed@uwaterloo.ca)
 
+## Video Demo
+https://drive.google.com/file/d/1CQ2ArxE455BLKXDgfylYFNXyTzCFFI-9/view?usp=sharing
+
 ## Project Related Links
 
 - [Team Contract on WIKI](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Team-Contract)
