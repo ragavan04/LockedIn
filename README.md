@@ -23,6 +23,7 @@ https://drive.google.com/file/d/1CQ2ArxE455BLKXDgfylYFNXyTzCFFI-9/view?usp=shari
 - [Release #1 APK](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Version-1.1.0-Release)
 - [Release #2 APK](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Version-1.2.0-Release)
 - [Release #3 APK](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Version-1.3.0-Release)
+- [Release #4 APK](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Version-1.4.0-Release)
 - [User Documentation](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/User-Documentation)
 - [Design Diagrams](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Design-Diagrams)
 - [Team Reflection](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Team-Reflections)
