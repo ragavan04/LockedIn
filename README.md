@@ -1,4 +1,4 @@
-# LockedIn - Team102- 18
+# LockedIn
 
 ### What is LockedIn
 
@@ -15,9 +15,6 @@ LockedIn is a dynamic social media platform designed to bring people together th
 https://drive.google.com/file/d/1CQ2ArxE455BLKXDgfylYFNXyTzCFFI-9/view?usp=sharing
 
 ## Project Related Links
-
-- [Team Contract on WIKI](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Team-Contract)
-- [Milestones](https://git.uwaterloo.ca/smohamed/team102-18/-/milestones) 
 - [Project Proposal](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Project-Proposal)
 - [Design Proposal](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Design-Proposal)
 - [Release #1 APK](https://git.uwaterloo.ca/smohamed/team102-18/-/wikis/Version-1.1.0-Release)
